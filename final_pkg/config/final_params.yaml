@@ -1,7 +1,7 @@
 /planner_node:
   ros__parameters:
-    
+    timer_period: 5.0
 
 /executer_node:
-  ros_parameters:
+  ros__parameters:
     online: false

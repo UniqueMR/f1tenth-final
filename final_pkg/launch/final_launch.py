@@ -13,7 +13,7 @@ def generate_launch_description():
 
     planner_node = Node(
         package='final_pkg',
-        executable='planner_node',
+        executable='planner_node.py',
         name='planner_node',
         parameters=[config_path],
         # parameters=['/home/runlong/sim_ws/install/pure_pursuit/share/pure_pursuit/config/pure_pursuit_params.yaml'],

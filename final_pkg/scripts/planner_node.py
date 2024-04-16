@@ -1,8 +1,31 @@
-import rclpy
+#!/usr/bin/env python3
 
-class Planner:
-    def __init__(self) -> None:
-        pass
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+
+class Planner(Node):
+    def __init__(self):
+        super().__init__('planner')
+        self.state_publisher_ = self.create_publisher(String, 'strategy', 10)
+        self.declare_parameter("timer_period", 20.0)
+        self.timer_period = self.get_parameter('timer_period').get_parameter_value().double_value
+        self.timer = self.create_timer(self.timer_period, self.timer_callback)
+        self.curr_state = 'normal'
+
+    def timer_callback(self):
+        if self.curr_state == 'normal':
+            self.curr_state = 'overtake'
+        elif self.curr_state == 'overtake':
+            self.curr_state = 'blocking'
+        elif self.curr_state == 'blocking':
+            self.curr_state = 'normal'
+        else:
+            pass
+        
+        state_msg = String()
+        state_msg.data = self.curr_state
+        self.state_publisher_.publish(state_msg)
 
 def main(args=None):
     rclpy.init(args=args)

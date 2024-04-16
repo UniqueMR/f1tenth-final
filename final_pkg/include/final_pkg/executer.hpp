@@ -13,7 +13,9 @@
 #include <random>
 #include <fstream>
 #include <stack>
+#include <map>
 #include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
@@ -42,7 +44,14 @@ typedef struct RRT_Node {
     bool is_root = false;
 } RRT_Node;
 
+enum class execState {
+    NORMAL,
+    OVERTAKE,
+    BLOCKING,
+    INVALID
+};
 
+execState stringToState(const std_msgs::msg::String::ConstSharedPtr str);
 class Executer : public rclcpp::Node {
 public:
     Executer();
@@ -55,10 +64,14 @@ private:
 
     string pose_topic;
     string scan_topic;
+    string state_topic;
+
+    execState curr_state;
     
     // publisher and subscriber
     rclcpp::Subscription<nav_msgs::msg::Odometry>::ConstSharedPtr odom_subscriber_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::ConstSharedPtr laser_scan_subscriber_;
+    rclcpp::Subscription<std_msgs::msg::String>::ConstSharedPtr state_subscriber_;
 
     rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::ConstSharedPtr drive_publisher_;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::ConstSharedPtr occupancy_grid_publisher_;
@@ -67,6 +80,9 @@ private:
     //callbacks
     void pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg);
+    void state_callback(const std_msgs::msg::String::ConstSharedPtr state_msg); 
 
-
+    void pure_pursuit();
+    void rrt();
+    void blocking();
 };
