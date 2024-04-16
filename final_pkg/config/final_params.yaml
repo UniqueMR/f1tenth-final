@@ -5,3 +5,4 @@
 /executer_node:
   ros__parameters:
     online: false
+    pp_look_ahead_distance: 1.4

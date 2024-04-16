@@ -28,11 +28,9 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h> // For transforming ROS messages
 #include <tf2/LinearMath/Quaternion.h>
 
-#include "csv_loader.hpp"
+#include "utils/csv_loader.hpp"
 
 /// CHECK: include needed ROS msg type headers and libraries
-
-using namespace std;
 
 // Struct defining the RRT_Node object in the RRT tree.
 // More fields could be added to thiis struct if more info needed.
@@ -60,13 +58,20 @@ private:
     bool online;
 
     // topics
-    string occupancy_grid_topic;
+    std::string occupancy_grid_topic;
 
-    string pose_topic;
-    string scan_topic;
-    string state_topic;
+    std::string pose_topic;
+    std::string scan_topic;
+    std::string state_topic;
+    std::string drive_topic;
 
     execState curr_state;
+
+    // tf buffer and listener
+    std::string parent_frame_id;
+    std::string child_frame_id;
+    std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
     
     // publisher and subscriber
     rclcpp::Subscription<nav_msgs::msg::Odometry>::ConstSharedPtr odom_subscriber_;
@@ -85,4 +90,8 @@ private:
     void pure_pursuit();
     void rrt();
     void blocking();
+
+    // params
+    double pp_look_ahead_distance;
+    double pp_kp;
 };
