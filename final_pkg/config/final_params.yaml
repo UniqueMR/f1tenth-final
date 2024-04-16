@@ -1,0 +1,7 @@
+/planner_node:
+  ros__parameters:
+    
+
+/executer_node:
+  ros_parameters:
+    online: false

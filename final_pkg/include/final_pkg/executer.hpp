@@ -48,4 +48,25 @@ public:
     Executer();
     virtual ~Executer();
 private:
+    bool online;
+
+    // topics
+    string occupancy_grid_topic;
+
+    string pose_topic;
+    string scan_topic;
+    
+    // publisher and subscriber
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::ConstSharedPtr odom_subscriber_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::ConstSharedPtr laser_scan_subscriber_;
+
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::ConstSharedPtr drive_publisher_;
+    rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::ConstSharedPtr occupancy_grid_publisher_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::ConstSharedPtr marker_publisher_;
+
+    //callbacks
+    void pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
+    void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg);
+
+
 };
