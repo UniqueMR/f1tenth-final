@@ -38,7 +38,7 @@ Executer::Executer()
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
     // initialize state handler#include "utils/csv_loader.hpp"
-    pure_pursuit_handler = std::make_unique<purePursuitHandler>(
+    pure_pursuit_handler = std::make_unique<purepursuitHandler>(
         this->get_parameter("waypoints_path").as_string().c_str()
     );
 

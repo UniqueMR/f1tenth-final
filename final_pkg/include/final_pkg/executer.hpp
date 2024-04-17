@@ -84,7 +84,7 @@ private:
     void state_callback(const std_msgs::msg::String::ConstSharedPtr state_msg); 
 
     // state handler
-    std::unique_ptr<purePursuitHandler> pure_pursuit_handler;
+    std::unique_ptr<purepursuitHandler> pure_pursuit_handler;
     void pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
     void rrt();
     void blocking();

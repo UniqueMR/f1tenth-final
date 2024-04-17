@@ -9,10 +9,10 @@
 #include "tf2_ros/buffer.h"
 #include "rclcpp/rclcpp.hpp"
 
-class purePursuitHandler{
+class purepursuitHandler{
 public:
-    purePursuitHandler(std::string waypoints_path);
-    virtual ~purePursuitHandler();
+    purepursuitHandler(std::string waypoints_path);
+    virtual ~purepursuitHandler();
     void update_params(double look_ahead_dist, double kp, double x, double y);
     void get_transform_stamp(std::string parent_frame_id, std::string child_frame_id, std::shared_ptr<tf2_ros::Buffer> tf_buffer_);
 private:
