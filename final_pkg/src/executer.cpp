@@ -89,44 +89,18 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
         child_frame_id,
         tf_buffer_
     );
+    // compute the next look ahead point
+    pure_pursuit_handler->get_lookahead_pt();
 
-    // // compute the next look ahead point
-    // getLookAheadPt(
-    //     curr_pt_world, 
-    //     next_pt_world, 
-    //     curr_pt_local, 
-    //     next_pt_local, 
-    //     lookAhead, 
-    //     way_points, 
-    //     t);
+    double steeringAngle = pure_pursuit_handler->gen_steer_ang();
 
-    // std::cout << "next: " << next_pt_local.point.x << " curr: " << curr_pt_local.point.x << std::endl;
+    // TODO: publish drive message, don't forget to limit the steering angle.
+    ackermann_msgs::msg::AckermannDriveStamped drive_msg;
+    if (steeringAngle < 0.0)    drive_msg.drive.steering_angle = std::max(steeringAngle, -0.349);
+    else    drive_msg.drive.steering_angle = std::min(steeringAngle, 0.349);
+    drive_msg.drive.speed = 1.0;
 
-
-    // // TODO: calculate curvature/steering angle
-    // if (next_pt_local.point.x - curr_pt_local.point.x < 0)
-    // {
-    //     std::cout << "Enter the exit condition" << std::endl;
-    //     return;
-    // }
-
-    // double y = next_pt_local.point.y - curr_pt_local.point.y;
-    // double curvature = (2 * y) / (lookAhead*lookAhead);
-    // double steeringAngle = K_p*curvature;
-
-    // // TODO: publish drive message, don't forget to limit the steering angle.
-    // auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
-    // if (steeringAngle < 0.0)
-    // {
-    //     drive_msg.drive.steering_angle = std::max(steeringAngle, -0.349);
-    // }
-    // else
-    // {
-    //     drive_msg.drive.steering_angle = std::min(steeringAngle, 0.349);
-    // }
-    // drive_msg.drive.speed = speed;
-
-    // drivePublisher_->publish(drive_msg);
+    drive_publisher_->publish(drive_msg);
 }
 
 void Executer::rrt(){

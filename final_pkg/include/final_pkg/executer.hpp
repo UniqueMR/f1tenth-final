@@ -74,7 +74,7 @@ private:
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::ConstSharedPtr laser_scan_subscriber_;
     rclcpp::Subscription<std_msgs::msg::String>::ConstSharedPtr state_subscriber_;
 
-    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::ConstSharedPtr drive_publisher_;
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr drive_publisher_;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::ConstSharedPtr occupancy_grid_publisher_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::ConstSharedPtr marker_publisher_;
 
