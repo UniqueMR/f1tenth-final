@@ -29,6 +29,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "utils/csv_loader.hpp"
+#include "pure_pursuit/pure_pursuit.hpp"
 
 /// CHECK: include needed ROS msg type headers and libraries
 
@@ -58,12 +59,7 @@ private:
     bool online;
 
     // topics
-    std::string occupancy_grid_topic;
-
-    std::string pose_topic;
-    std::string scan_topic;
-    std::string state_topic;
-    std::string drive_topic;
+    std::string occupancy_grid_topic, pose_topic, scan_topic, state_topic, drive_topic;
 
     execState curr_state;
 
@@ -87,6 +83,8 @@ private:
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg);
     void state_callback(const std_msgs::msg::String::ConstSharedPtr state_msg); 
 
+    // state handler
+    std::unique_ptr<purePursuitHandler> pure_pursuit_handler;
     void pure_pursuit();
     void rrt();
     void blocking();

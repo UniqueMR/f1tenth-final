@@ -6,6 +6,7 @@ Executer::Executer()
     this->declare_parameter<bool>("online", false);
     online = this->get_parameter("online").as_bool();
     this->declare_parameter<double>("pp_look_ahead_distance", 2.0);
+    this->declare_parameter<std::string>("waypoints_path", "");
 
     // initialize topic
     occupancy_grid_topic = "dynamic_map";
@@ -34,6 +35,9 @@ Executer::Executer()
     child_frame_id = (online) ? "laser" : "ego_racecar/base_link";
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
+    // initialize state handler#include "utils/csv_loader.hpp"
+    pure_pursuit_handler = std::make_unique<purePursuitHandler>(this->get_parameter("waypoints_path").as_string().c_str());
 
     //initialize the current state
     curr_state = execState::NORMAL;
@@ -64,12 +68,75 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
 }
 
 void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg){
+
 }
 
 void Executer::pure_pursuit(){
     RCLCPP_INFO(this->get_logger(), "select pure pursuit strategy...\n");
     // get params each stamp
-    pp_look_ahead_distance = this->get_parameter("pp_look_ahead_distance").as_double();
+    // pure_pursuit_handler->update_params(
+    //     this->get_parameter("")
+    // )
+    // pp_look_ahead_distance = this->get_parameter("pp_look_ahead_distance").as_double();
+
+    // geometry_msgs::msg::PointStamped curr_pt_world;
+    // curr_pt_world.point.x = pose_msg->pose.pose.position.x;
+    // curr_pt_world.point.y = pose_msg->pose.pose.position.y;
+    // curr_pt_world.header.frame_id = parent_frame_id;
+    // geometry_msgs::msg::PointStamped next_pt_world;
+    // geometry_msgs::msg::PointStamped curr_pt_local;
+    // geometry_msgs::msg::PointStamped next_pt_local;
+
+    // // look up the transformation
+    // geometry_msgs::msg::TransformStamped t;
+    // try {
+    //     t = tf_buffer_->lookupTransform(
+    //     child_frame_id, parent_frame_id,
+    //     tf2::TimePointZero);
+    // } catch (const tf2::TransformException & ex) {
+    //     RCLCPP_INFO(
+    //     this->get_logger(), "Could not transform %s to %s: %s",
+    //     parent_frame_id.c_str(), child_frame_id.c_str(), ex.what());
+    //     return;
+    // }
+
+    // // compute the next look ahead point
+    // getLookAheadPt(
+    //     curr_pt_world, 
+    //     next_pt_world, 
+    //     curr_pt_local, 
+    //     next_pt_local, 
+    //     lookAhead, 
+    //     way_points, 
+    //     t);
+
+    // std::cout << "next: " << next_pt_local.point.x << " curr: " << curr_pt_local.point.x << std::endl;
+
+
+    // // TODO: calculate curvature/steering angle
+    // if (next_pt_local.point.x - curr_pt_local.point.x < 0)
+    // {
+    //     std::cout << "Enter the exit condition" << std::endl;
+    //     return;
+    // }
+
+    // double y = next_pt_local.point.y - curr_pt_local.point.y;
+    // double curvature = (2 * y) / (lookAhead*lookAhead);
+    // double steeringAngle = K_p*curvature;
+
+    // // TODO: publish drive message, don't forget to limit the steering angle.
+    // auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
+    // if (steeringAngle < 0.0)
+    // {
+    //     drive_msg.drive.steering_angle = std::max(steeringAngle, -0.349);
+    // }
+    // else
+    // {
+    //     drive_msg.drive.steering_angle = std::min(steeringAngle, 0.349);
+    // }
+    // drive_msg.drive.speed = speed;
+
+    // drivePublisher_->publish(drive_msg);
 }
 
 void Executer::rrt(){
