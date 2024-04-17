@@ -4,7 +4,7 @@
 
 /executer_node:
   ros__parameters:
-    online: false
+    online: false # set the parameter to true while testing on the vehicle
     pp_look_ahead_distance: 1.5
     pp_kp: 0.5
     waypoints_path: "src/final_pkg/path/using.csv"

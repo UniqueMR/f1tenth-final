@@ -14,6 +14,8 @@ class Planner(Node):
         self.curr_state = 'normal'
 
     def timer_callback(self):
+        # this is just a dummy planner
+        # set it to maintain a certain state for single functionality test
         if self.curr_state == 'normal':
             self.curr_state = 'overtake'
         elif self.curr_state == 'overtake':
