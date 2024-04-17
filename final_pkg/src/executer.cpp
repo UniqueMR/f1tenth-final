@@ -6,6 +6,7 @@ Executer::Executer()
     this->declare_parameter<bool>("online", false);
     online = this->get_parameter("online").as_bool();
     this->declare_parameter<double>("pp_look_ahead_distance", 2.0);
+    this->declare_parameter<double>("pp_kp", 0.5);
     this->declare_parameter<std::string>("waypoints_path", "");
 
     // initialize topic
@@ -33,11 +34,13 @@ Executer::Executer()
     // initialize frames and tf buffer and listener
     parent_frame_id = "map";
     child_frame_id = (online) ? "laser" : "ego_racecar/base_link";
-    tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+    tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
     // initialize state handler#include "utils/csv_loader.hpp"
-    pure_pursuit_handler = std::make_unique<purePursuitHandler>(this->get_parameter("waypoints_path").as_string().c_str());
+    pure_pursuit_handler = std::make_unique<purePursuitHandler>(
+        this->get_parameter("waypoints_path").as_string().c_str()
+    );
 
     //initialize the current state
     curr_state = execState::NORMAL;
@@ -53,7 +56,7 @@ Executer::~Executer()
 void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     switch(curr_state){
         case execState::NORMAL:
-            pure_pursuit();
+            pure_pursuit(pose_msg);
             break;
         case execState::OVERTAKE:
             rrt();
@@ -71,34 +74,21 @@ void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr s
 
 }
 
-void Executer::pure_pursuit(){
+void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     RCLCPP_INFO(this->get_logger(), "select pure pursuit strategy...\n");
     // get params each stamp
-    // pure_pursuit_handler->update_params(
-    //     this->get_parameter("")
-    // )
-    // pp_look_ahead_distance = this->get_parameter("pp_look_ahead_distance").as_double();
+    pure_pursuit_handler->update_params(
+        this->get_parameter("pp_look_ahead_distance").as_double(),
+        this->get_parameter("pp_kp").as_double(),
+        pose_msg->pose.pose.position.x,
+        pose_msg->pose.pose.position.y
+    );
 
-    // geometry_msgs::msg::PointStamped curr_pt_world;
-    // curr_pt_world.point.x = pose_msg->pose.pose.position.x;
-    // curr_pt_world.point.y = pose_msg->pose.pose.position.y;
-    // curr_pt_world.header.frame_id = parent_frame_id;
-    // geometry_msgs::msg::PointStamped next_pt_world;
-    // geometry_msgs::msg::PointStamped curr_pt_local;
-    // geometry_msgs::msg::PointStamped next_pt_local;
-
-    // // look up the transformation
-    // geometry_msgs::msg::TransformStamped t;
-    // try {
-    //     t = tf_buffer_->lookupTransform(
-    //     child_frame_id, parent_frame_id,
-    //     tf2::TimePointZero);
-    // } catch (const tf2::TransformException & ex) {
-    //     RCLCPP_INFO(
-    //     this->get_logger(), "Could not transform %s to %s: %s",
-    //     parent_frame_id.c_str(), child_frame_id.c_str(), ex.what());
-    //     return;
-    // }
+    pure_pursuit_handler->get_transform_stamp(
+        parent_frame_id,
+        child_frame_id,
+        tf_buffer_
+    );
 
     // // compute the next look ahead point
     // getLookAheadPt(

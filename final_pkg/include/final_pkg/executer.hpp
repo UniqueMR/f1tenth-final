@@ -66,7 +66,7 @@ private:
     // tf buffer and listener
     std::string parent_frame_id;
     std::string child_frame_id;
-    std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
     
     // publisher and subscriber
@@ -85,7 +85,7 @@ private:
 
     // state handler
     std::unique_ptr<purePursuitHandler> pure_pursuit_handler;
-    void pure_pursuit();
+    void pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
     void rrt();
     void blocking();
 
