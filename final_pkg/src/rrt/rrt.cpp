@@ -115,6 +115,29 @@ bool rrtHandler::is_collide(std::vector<double> sampled_pt){
     return updated_map->data[idx] == 100;
 }
 
+int rrtHandler::nearest(std::vector<double> sampled_node_pt){
+    int nearest_node = 0;
+    double nearest_dist = std::numeric_limits<double>::infinity();
+    // TODO: fill in this method 
+    for(unsigned int i = 0; i < tree.size(); i++)
+    {   
+        double distance = calcDistance(sampled_node_pt, tree[i].x, tree[i].y); 
+        if(distance < nearest_dist)
+        {
+            nearest_node = i;
+            nearest_dist = distance;
+        }
+    }   
+
+    return nearest_node;
+}
+
+double rrtHandler::calcDistance(std::vector<double> sampled_pt, double node_x, double node_y){
+    double dist_x = sampled_pt[0] - node_x;
+    double dist_y = sampled_pt[1] - node_y;
+
+    return std::pow(dist_x, 2) + std::pow(dist_y, 2);
+}
 
 std::vector<int> rrtHandler::get_obs_idx(
     geometry_msgs::msg::PointStamped pt_world,
@@ -129,6 +152,94 @@ std::vector<int> rrtHandler::get_obs_idx(
     }
 
     return obs_idxs;
+}
+
+RRT_Node rrtHandler::steer(int nearest_node_id, std::vector<double> sampled_node_pt, double max_expansion_dist){
+    RRT_Node new_node;
+    std::vector<double> vec_node_sample = {sampled_node_pt[0] - tree[nearest_node_id].x, sampled_node_pt[1] - tree[nearest_node_id].y};
+    double dist_node_sample = std::sqrt(std::pow(vec_node_sample[0], 2) + std::pow(vec_node_sample[1], 2));
+    std::vector<double> norm_vec = {vec_node_sample[0] / dist_node_sample, vec_node_sample[1] / dist_node_sample};
+
+    new_node.x = tree[nearest_node_id].x + ((dist_node_sample < max_expansion_dist) ? norm_vec[0] * dist_node_sample : norm_vec[0] * max_expansion_dist);
+    new_node.y = tree[nearest_node_id].y + ((dist_node_sample < max_expansion_dist) ? norm_vec[1] * dist_node_sample : norm_vec[1] * max_expansion_dist);
+
+    new_node.parent = nearest_node_id;
+    new_node.is_root = false;
+
+    return new_node;
+}
+
+bool rrtHandler::check_collision(int neighbor_idx, RRT_Node new_node, int check_pts_num){
+    
+    // create a new temp node along the line between nearest node and new node 
+    double x_incre = (new_node.x - tree[neighbor_idx].x) / check_pts_num;
+    double y_incre = (new_node.y - tree[neighbor_idx].y) / check_pts_num;
+
+    for(int i = 0; i < check_pts_num; i++)
+    {
+        double sampled_pt_x = tree[neighbor_idx].x + i * x_incre;
+        double sampled_pt_y = tree[neighbor_idx].y + i * y_incre;
+
+        std::vector<double> sampled_pt;
+        sampled_pt.push_back(sampled_pt_x);
+        sampled_pt.push_back(sampled_pt_y);
+
+        if(is_collide(sampled_pt))    return true;
+    }
+
+    return false;
+}
+
+double rrtHandler::line_cost(RRT_Node &n1, RRT_Node &n2){
+    return std::sqrt(std::pow(n1.x - n2.x, 2) + std::pow(n1.y - n2.y, 2));
+}
+
+double rrtHandler::cost(RRT_Node node){
+    double parent_cost = tree[node.parent].cost;
+    double curr_cost = line_cost(tree[node.parent], node);
+    return parent_cost + curr_cost;
+}
+
+std::vector<int> rrtHandler::near(RRT_Node node, int search_radius) {
+    std::vector<int> neighborhood;
+    for(int i = 0; i < tree.size(); i++){
+        if(std::sqrt(std::pow(tree[i].x - node.x, 2) + std::pow(tree[i].y - node.y, 2)) < search_radius)
+            neighborhood.push_back(i);
+    }
+    return neighborhood;
+}
+
+int rrtHandler::link_best_neighbor(RRT_Node &new_node, std::vector<int> neighbor_indices, std::vector<bool> &neighbor_collided, int check_pts_num){
+    int best_neighbor_idx = tree.size();
+    for(const int neighbor_idx : neighbor_indices){
+        if(check_collision(neighbor_idx, new_node, check_pts_num)){
+            neighbor_collided.push_back(true);
+            continue;
+        }
+        
+        neighbor_collided.push_back(false);
+
+        double curr_cost = tree[neighbor_idx].cost + line_cost(tree[neighbor_idx], new_node);
+
+        if(curr_cost < new_node.cost){
+            new_node.parent = neighbor_idx;
+            new_node.cost = curr_cost;
+            best_neighbor_idx = neighbor_idx;
+        }
+    }
+    return best_neighbor_idx;
+}
+
+void rrtHandler::rearrange_tree(int best_neighbor_idx, std::vector<int> neighbor_indices, std::vector<bool> neighbor_collided, RRT_Node new_node){
+    if(best_neighbor_idx == tree.size())    return;
+    for(int i = 0; i < neighbor_indices.size(); i++){
+        if(neighbor_collided[i] || i == best_neighbor_idx)  continue;
+        double potential_cost = new_node.cost + line_cost(new_node, tree[neighbor_indices[i]]);
+        if(potential_cost < tree[neighbor_indices[i]].cost){
+            tree[neighbor_indices[i]].parent = tree.size();
+            tree[neighbor_indices[i]].cost = potential_cost;
+        }
+    }
 }
 
 void rrtHandler::init_map_header(std::string frame_id){

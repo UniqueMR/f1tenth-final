@@ -21,6 +21,8 @@ Executer::Executer()
     this->declare_parameter<double>("rrt_kp", 1.0);
     this->declare_parameter<double>("rrt_speed", 3.0);
     this->declare_parameter<int>("rrt_bubble_offset", 1);
+    this->declare_parameter<bool>("rrt_star_enable", true);
+    this->declare_parameter<double>("rrt_search_radius", 0.5);
 
     // initialize topic
     occupancy_grid_topic = "dynamic_map";
@@ -152,7 +154,32 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
             this->get_parameter("rrt_look_ahead_dist").as_double()
         );
 
+        if(rrt_handler->is_collide(sampled_node_pt))    continue;
 
+        int nearest_node_id = rrt_handler->nearest(sampled_node_pt);
+
+        RRT_Node new_node = rrt_handler->steer(
+            nearest_node_id, sampled_node_pt,
+            this->get_parameter("rrt_max_expansion_dist").as_double()
+        );
+
+        if(this->get_parameter("rrt_star_enable").as_bool()){
+            new_node.cost = rrt_handler->cost(new_node);
+            std::vector<int> neighbor_indices = rrt_handler->near(new_node, this->get_parameter("rrt_search_radius").as_int());
+            std::vector<bool> neighbor_collided;
+
+            int best_neighbor_idx = rrt_handler->link_best_neighbor(new_node, neighbor_indices, neighbor_collided, this->get_parameter("rrt_check_pts_num").as_int());
+
+            rrt_handler->rearrange_tree(best_neighbor_idx, neighbor_indices, neighbor_collided, new_node);
+        }
+        else{
+            if(rrt_handler->check_collision(
+                nearest_node_id, new_node,
+                this->get_parameter("rrt_check_pts_num").as_int())
+            )   continue;
+        }
+
+        rrt_handler->tree.push_back(new_node);
     }
 }
 

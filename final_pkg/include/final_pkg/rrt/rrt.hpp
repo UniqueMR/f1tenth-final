@@ -46,15 +46,23 @@ public:
     );
 
     // workflow
+    std::vector<RRT_Node> tree;
     std::vector<double> sample(double look_ahead_dist);
     bool is_collide(std::vector<double> sampled_pt);
     bool check_collision(RRT_Node &nearest_node, RRT_Node &new_node);
-    
+    int nearest(std::vector<double> sampled_node_pt);
+    double calcDistance(std::vector<double> sampled_pt, double node_x, double node_y);
+    RRT_Node steer(int nearest_node_id, std::vector<double> sampled_node_pt, double max_expansion_dist);
+    bool check_collision(int neighbor_idx, RRT_Node new_node, int check_pts_num);
+    double cost(RRT_Node node);
+    double line_cost(RRT_Node &n1, RRT_Node &n2);
+    std::vector<int> near(RRT_Node node, int search_radius);
+    int link_best_neighbor(RRT_Node &new_node, std::vector<int> neighbor_indices, std::vector<bool> &neighbor_collided, int check_pts_num);
+    void rearrange_tree(int best_neighbor_idx, std::vector<int> neighbor_indices, std::vector<bool> neighbor_collided, RRT_Node new_node);
 
 private:  
     std::unique_ptr<wayPointLoader> dataloader;
     std::vector<wayPoint> way_points;
-    std::vector<RRT_Node> tree;
 
     // sampling
     std::mt19937 gen;
