@@ -2,12 +2,25 @@
 
 Executer::Executer()
 : rclcpp::Node("Executer"){
-    //declare parameters
+    // declare parameters
     this->declare_parameter<bool>("online", false);
     online = this->get_parameter("online").as_bool();
+    this->declare_parameter<std::string>("waypoints_path", "");
+
+    // pure pursuit parameters
     this->declare_parameter<double>("pp_look_ahead_distance", 2.0);
     this->declare_parameter<double>("pp_kp", 0.5);
-    this->declare_parameter<std::string>("waypoints_path", "");
+
+    // rrt parameters
+    this->declare_parameter<double>("rrt_look_ahead_dist", 6.0);
+    this->declare_parameter<double>("rrt_tree_look_ahead_dist", 1.5);
+    this->declare_parameter<int>("rrt_iter", 25);
+    this->declare_parameter<int>("rrt_check_pts_num", 200);
+    this->declare_parameter<double>("rrt_max_expansion_dist", 0.75);
+    this->declare_parameter<int>("rrt_obs_clear_rate", 10);
+    this->declare_parameter<double>("rrt_kp", 1.0);
+    this->declare_parameter<double>("rrt_speed", 3.0);
+    this->declare_parameter<int>("rrt_bubble_offset", 1);
 
     // initialize topic
     occupancy_grid_topic = "dynamic_map";
@@ -30,6 +43,9 @@ Executer::Executer()
     drive_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(
         drive_topic, 10
     );
+    occupancy_grid_publisher_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
+        occupancy_grid_topic, 10
+    );
 
     // initialize frames and tf buffer and listener
     parent_frame_id = "map";
@@ -37,13 +53,18 @@ Executer::Executer()
     tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    // initialize state handler#include "utils/csv_loader.hpp"
+    // initialize state handler
     pure_pursuit_handler = std::make_unique<purepursuitHandler>(
         this->get_parameter("waypoints_path").as_string().c_str()
     );
 
+    rrt_handler = std::make_unique<rrtHandler>(
+        this->get_parameter("waypoints_path").as_string().c_str(),
+        parent_frame_id.c_str()
+    );    
+
     //initialize the current state
-    curr_state = execState::NORMAL;
+    curr_state = execState::OVERTAKE;
 
     return;
 }
@@ -59,7 +80,7 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
             pure_pursuit(pose_msg);
             break;
         case execState::OVERTAKE:
-            rrt();
+            rrt(pose_msg);
             break;
         case execState::BLOCKING:
             blocking();
@@ -71,7 +92,55 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
 }
 
 void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg){
+    switch(curr_state){
+        case execState::OVERTAKE:
+            for(unsigned int i = 0; i < scan_msg->ranges.size(); i++){
+                double curr_dist = scan_msg->ranges[i];
+                double curr_ang = scan_msg->angle_min + i * scan_msg->angle_increment;
 
+                // check if the lidar ranges are nan or inf
+                if(std::isnan(curr_dist) || std::isinf(curr_dist))  continue;
+
+                // get the position of the obstacle in the vehicle frame
+                double curr_x = curr_dist * std::cos(curr_ang), curr_y = curr_dist * std::sin(curr_ang);
+
+                if(curr_x > this->get_parameter("rrt_look_ahead_dist").as_double() 
+                    || curr_y > this->get_parameter("rrt_look_ahead_dist").as_double())  continue;
+            
+                geometry_msgs::msg::PointStamped curr_beam_local, curr_beam_world; 
+                curr_beam_local.point.x = curr_x, curr_beam_local.point.y = curr_y;
+
+                try {
+                tf2::doTransform(curr_beam_local, curr_beam_world, rrt_handler->t);
+                } catch (const tf2::TransformException &ex) {
+                std::cout << "beam transformation failed" << std::endl;
+                }
+
+                std::vector<int> obs_idxs = rrt_handler->get_obs_idx(
+                    curr_beam_world, 
+                    this->get_parameter("rrt_bubble_offset").as_int()
+                );
+
+                for(const auto& idx : obs_idxs){
+                    if(idx < 0 || idx >= rrt_handler->updated_map->info.width * rrt_handler->updated_map->info.height)  
+                        continue;                    
+                    rrt_handler->updated_map->data[idx] = 100;
+                }
+
+            }   
+
+            rrt_handler->clear_obs_cnt++;
+            if(rrt_handler->clear_obs_cnt > this->get_parameter("rrt_obs_clear_rate").as_int()){
+                rrt_handler->updated_map->data.assign(rrt_handler->updated_map->info.width * rrt_handler->updated_map->info.height, -1);
+                rrt_handler->clear_obs_cnt = 0;
+            }
+
+            rrt_handler->updated_map->header.stamp = this->now();
+            occupancy_grid_publisher_->publish(*(rrt_handler->updated_map));
+            break;
+        default:
+            RCLCPP_INFO(this->get_logger(), "occupancy grid idle\n");
+    }
 }
 
 void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
@@ -84,7 +153,7 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
         pose_msg->pose.pose.position.y
     );
 
-    pure_pursuit_handler->get_transform_stamp(
+    pure_pursuit_handler->get_transform_stamp_W2L(
         parent_frame_id,
         child_frame_id,
         tf_buffer_
@@ -103,8 +172,23 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
     drive_publisher_->publish(drive_msg);
 }
 
-void Executer::rrt(){
+void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     RCLCPP_INFO(this->get_logger(), "select rrt strategy...\n");
+    
+    rrt_handler->init_tree(pose_msg);
+    rrt_handler->get_transform_stamp_L2W(
+        parent_frame_id,
+        child_frame_id,
+        tf_buffer_
+    );
+
+    for(int cnt = 0; cnt < this->get_parameter("rrt_iter").as_int(); cnt++){
+        std::vector<double> sampled_node_pt = rrt_handler->sample(
+            this->get_parameter("rrt_look_ahead_dist").as_double()
+        );
+
+
+    }
 }
 
 void Executer::blocking(){

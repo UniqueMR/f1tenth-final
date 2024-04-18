@@ -16,14 +16,15 @@ class Planner(Node):
     def timer_callback(self):
         # this is just a dummy planner
         # set it to maintain a certain state for single functionality test
-        if self.curr_state == 'normal':
-            self.curr_state = 'overtake'
-        elif self.curr_state == 'overtake':
-            self.curr_state = 'blocking'
-        elif self.curr_state == 'blocking':
-            self.curr_state = 'normal'
-        else:
-            pass
+        # if self.curr_state == 'normal':
+        #     self.curr_state = 'overtake'
+        # elif self.curr_state == 'overtake':
+        #     self.curr_state = 'blocking'
+        # elif self.curr_state == 'blocking':
+        #     self.curr_state = 'normal'
+        # else:
+        #     pass
+        self.curr_state = 'overtake'
         
         state_msg = String()
         state_msg.data = self.curr_state

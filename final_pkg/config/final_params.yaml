@@ -5,6 +5,19 @@
 /executer_node:
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle
+
+    # pure pursuit params
     pp_look_ahead_distance: 1.5
     pp_kp: 0.5
     waypoints_path: "src/final_pkg/path/using.csv"
+
+    # rrt params
+    rrt_look_ahead_dist: 6.0
+    rrt_tree_look_ahead_dist: 1.5
+    rrt_bubble_offset: 1
+    rrt_iter: 25
+    rrt_check_pts_num: 200
+    rrt_max_expansion_dist: 0.75
+    rrt_obs_clear_rate: 10
+    rrt_kp: 1.0
+    rrt_speed: 3.0

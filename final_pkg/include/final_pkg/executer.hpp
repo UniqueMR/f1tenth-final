@@ -30,18 +30,7 @@
 
 #include "utils/csv_loader.hpp"
 #include "pure_pursuit/pure_pursuit.hpp"
-
-/// CHECK: include needed ROS msg type headers and libraries
-
-// Struct defining the RRT_Node object in the RRT tree.
-// More fields could be added to thiis struct if more info needed.
-// You can choose to use this or not
-typedef struct RRT_Node {
-    double x, y; // not sure
-    double cost; // only used for RRT*
-    int parent; // index of parent node in the tree vector
-    bool is_root = false;
-} RRT_Node;
+#include "rrt/rrt.hpp"
 
 enum class execState {
     NORMAL,
@@ -75,7 +64,7 @@ private:
     rclcpp::Subscription<std_msgs::msg::String>::ConstSharedPtr state_subscriber_;
 
     rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr drive_publisher_;
-    rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::ConstSharedPtr occupancy_grid_publisher_;
+    rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr occupancy_grid_publisher_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::ConstSharedPtr marker_publisher_;
 
     //callbacks
@@ -85,8 +74,9 @@ private:
 
     // state handler
     std::unique_ptr<purepursuitHandler> pure_pursuit_handler;
+    std::unique_ptr<rrtHandler> rrt_handler;
     void pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
-    void rrt();
+    void rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
     void blocking();
 
     // params
