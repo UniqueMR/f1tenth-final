@@ -94,47 +94,12 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
 void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg){
     switch(curr_state){
         case execState::OVERTAKE:
-            for(unsigned int i = 0; i < scan_msg->ranges.size(); i++){
-                double curr_dist = scan_msg->ranges[i];
-                double curr_ang = scan_msg->angle_min + i * scan_msg->angle_increment;
-
-                // check if the lidar ranges are nan or inf
-                if(std::isnan(curr_dist) || std::isinf(curr_dist))  continue;
-
-                // get the position of the obstacle in the vehicle frame
-                double curr_x = curr_dist * std::cos(curr_ang), curr_y = curr_dist * std::sin(curr_ang);
-
-                if(curr_x > this->get_parameter("rrt_look_ahead_dist").as_double() 
-                    || curr_y > this->get_parameter("rrt_look_ahead_dist").as_double())  continue;
-            
-                geometry_msgs::msg::PointStamped curr_beam_local, curr_beam_world; 
-                curr_beam_local.point.x = curr_x, curr_beam_local.point.y = curr_y;
-
-                try {
-                tf2::doTransform(curr_beam_local, curr_beam_world, rrt_handler->t);
-                } catch (const tf2::TransformException &ex) {
-                std::cout << "beam transformation failed" << std::endl;
-                }
-
-                std::vector<int> obs_idxs = rrt_handler->get_obs_idx(
-                    curr_beam_world, 
-                    this->get_parameter("rrt_bubble_offset").as_int()
-                );
-
-                for(const auto& idx : obs_idxs){
-                    if(idx < 0 || idx >= rrt_handler->updated_map->info.width * rrt_handler->updated_map->info.height)  
-                        continue;                    
-                    rrt_handler->updated_map->data[idx] = 100;
-                }
-
-            }   
-
-            rrt_handler->clear_obs_cnt++;
-            if(rrt_handler->clear_obs_cnt > this->get_parameter("rrt_obs_clear_rate").as_int()){
-                rrt_handler->updated_map->data.assign(rrt_handler->updated_map->info.width * rrt_handler->updated_map->info.height, -1);
-                rrt_handler->clear_obs_cnt = 0;
-            }
-
+            rrt_handler->update_occupancy_grid(
+                scan_msg,
+                this->get_parameter("rrt_look_ahead_dist").as_double(),
+                this->get_parameter("rrt_bubble_offset").as_int(),
+                this->get_parameter("rrt_obs_clear_rate").as_int()
+            );
             rrt_handler->updated_map->header.stamp = this->now();
             occupancy_grid_publisher_->publish(*(rrt_handler->updated_map));
             break;

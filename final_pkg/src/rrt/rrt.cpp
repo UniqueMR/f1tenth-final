@@ -38,6 +38,49 @@ void rrtHandler::get_transform_stamp_L2W(
     }
 }
 
+void rrtHandler::update_occupancy_grid(
+    const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg,
+    double look_ahead_dist, int bubble_offset, int obs_clear_rate){
+            for(unsigned int i = 0; i < scan_msg->ranges.size(); i++){
+                double curr_dist = scan_msg->ranges[i];
+                double curr_ang = scan_msg->angle_min + i * scan_msg->angle_increment;
+
+                // check if the lidar ranges are nan or inf
+                if(std::isnan(curr_dist) || std::isinf(curr_dist))  continue;
+
+                // get the position of the obstacle in the vehicle frame
+                double curr_x = curr_dist * std::cos(curr_ang), curr_y = curr_dist * std::sin(curr_ang);
+
+                if(curr_x > look_ahead_dist || curr_y > look_ahead_dist)  continue;
+            
+                geometry_msgs::msg::PointStamped curr_beam_local, curr_beam_world; 
+                curr_beam_local.point.x = curr_x, curr_beam_local.point.y = curr_y;
+
+                try {
+                tf2::doTransform(curr_beam_local, curr_beam_world, t);
+                } catch (const tf2::TransformException &ex) {
+                std::cout << "beam transformation failed" << std::endl;
+                }
+
+                std::vector<int> obs_idxs = get_obs_idx(
+                    curr_beam_world, 
+                    bubble_offset
+                );
+
+                for(const auto& idx : obs_idxs){
+                    if(idx < 0 || idx >= updated_map->info.width * updated_map->info.height)  
+                        continue;                    
+                    updated_map->data[idx] = 100;
+                }
+            }   
+
+            clear_obs_cnt++;
+            if(clear_obs_cnt > obs_clear_rate){
+                updated_map->data.assign(updated_map->info.width * updated_map->info.height, -1);
+                clear_obs_cnt = 0;
+            }
+}
+
 std::vector<double> rrtHandler::sample(double look_ahead_dist) {
     std::vector<double> sampled_point;
 

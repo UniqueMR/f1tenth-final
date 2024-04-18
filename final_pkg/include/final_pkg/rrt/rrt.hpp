@@ -29,7 +29,8 @@ public:
     int clear_obs_cnt = 0;
     std::shared_ptr<nav_msgs::msg::OccupancyGrid> updated_map;
     void update_occupancy_grid(
-        const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg
+        const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg,
+        double look_ahead_dist, int bubble_offset, int obs_clear_rate
     );
     std::vector<int> get_obs_idx(
         geometry_msgs::msg::PointStamped pt_world,
