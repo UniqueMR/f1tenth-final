@@ -69,6 +69,8 @@ private:
     std::unique_ptr<wayPointLoader> dataloader;
     std::vector<wayPoint> way_points;
 
+    std::vector<size_t> new_obs;
+
     // sampling
     std::mt19937 gen;
     std::uniform_real_distribution<> x_dist;

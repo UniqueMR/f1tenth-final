@@ -37,7 +37,7 @@ include_directories(
 )
 
 # Create Cpp executable
-add_executable(executer_node src/executer_node.cpp src/executer.cpp src/utils/csv_loader.cpp src/blocking/blocking.cpp src/pure_pursuit/pure_pursuit.cpp src/rrt/rrt.cpp)
+add_executable(executer_node src/executer_node.cpp src/executer.cpp src/utils/csv_loader.cpp src/blocking/blocking.cpp src/pure_pursuit/pure_pursuit.cpp src/rrt/rrt.cpp src/rrt/math.cpp src/rrt/visualize.cpp)
 
 ament_target_dependencies(executer_node 
   rclcpp geometry_msgs ackermann_msgs nav_msgs sensor_msgs std_msgs visualization_msgs tf2_ros tf2_geometry_msgs

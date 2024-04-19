@@ -7,6 +7,8 @@ rrtHandler::rrtHandler(std::string waypoints_path, std::string parent_frame_id){
     updated_map = std::make_shared<nav_msgs::msg::OccupancyGrid>();
     init_map_header(parent_frame_id);
     init_marker(parent_frame_id);
+    new_obs = {};
+    new_obs.reserve(2000);
 }
 
 rrtHandler::~rrtHandler(){
@@ -71,13 +73,17 @@ void rrtHandler::update_occupancy_grid(
                 for(const auto& idx : obs_idxs){
                     if(idx < 0 || idx >= updated_map->info.width * updated_map->info.height)  
                         continue;                    
-                    updated_map->data[idx] = 100;
+                    if(updated_map->data[idx] != 100){
+                        updated_map->data[idx] = 100;
+                        new_obs.emplace_back(idx);
+                    }
                 }
             }   
 
             clear_obs_cnt++;
             if(clear_obs_cnt > obs_clear_rate){
-                updated_map->data.assign(updated_map->info.width * updated_map->info.height, -1);
+                for(const auto idx : new_obs)   updated_map->data[idx] = -1;
+                new_obs.clear();
                 clear_obs_cnt = 0;
             }
 }
@@ -133,13 +139,6 @@ int rrtHandler::nearest(std::vector<double> sampled_node_pt){
     return nearest_node;
 }
 
-double rrtHandler::calcDistance(std::vector<double> sampled_pt, double node_x, double node_y){
-    double dist_x = sampled_pt[0] - node_x;
-    double dist_y = sampled_pt[1] - node_y;
-
-    return std::pow(dist_x, 2) + std::pow(dist_y, 2);
-}
-
 std::vector<int> rrtHandler::get_obs_idx(
     geometry_msgs::msg::PointStamped pt_world,
     double bubble_offset){    
@@ -189,10 +188,6 @@ bool rrtHandler::check_collision(int neighbor_idx, RRT_Node new_node, int check_
     }
 
     return false;
-}
-
-double rrtHandler::line_cost(RRT_Node &n1, RRT_Node &n2){
-    return std::sqrt(std::pow(n1.x - n2.x, 2) + std::pow(n1.y - n2.y, 2));
 }
 
 double rrtHandler::cost(RRT_Node node){
@@ -315,40 +310,4 @@ std::vector<double> rrtHandler::follow_path(std::vector<RRT_Node> path, geometry
         curr_pt_local = next_pt_local;
     }
     return steerings;
-}
-
-void rrtHandler::init_map_header(std::string frame_id){
-    updated_map->header.frame_id = frame_id;
-    // Specify the layout of the map
-    updated_map->info.resolution = 0.1; // each cell will represent 10cm x 10cm
-    updated_map->info.width = 759;      // 10m wide
-    updated_map->info.height = 844;     // 10m tall
-    updated_map->info.origin.position.x = -27.7;
-    updated_map->info.origin.position.y = -12.4;
-    updated_map->info.origin.position.z = 0.0;
-    updated_map->info.origin.orientation.x = 0.0;
-    updated_map->info.origin.orientation.y = 0.0;
-    updated_map->info.origin.orientation.z = 0.0;
-    updated_map->info.origin.orientation.w = 1.0;
-
-    updated_map->data.assign(updated_map->info.width * updated_map->info.height, -1);
-}
-
-void rrtHandler::init_marker(std::string parent_frame_id){
-    visualized_points.header.frame_id = parent_frame_id; // Change to your frame ID
-    visualized_points.ns = "sampled_points";
-    visualized_points.action = visualization_msgs::msg::Marker::ADD;
-    visualized_points.pose.orientation.w = 1.0;
-
-    visualized_points.id = 0;
-    visualized_points.type = visualization_msgs::msg::Marker::POINTS;
-
-    // POINTS markers use x and y scale for width/height respectively
-    visualized_points.scale.x = 0.2; // Specify the size of the point
-    visualized_points.scale.y = 0.2;
-
-    visualized_points.color.r = 1.0f; // Set the red component to full intensity
-    visualized_points.color.g = 0.0f; // Set the green component to zero
-    visualized_points.color.b = 0.0f; // Set the blue component to zero
-    visualized_points.color.a = 1.0f; // Don't forget to set the alpha!
 }

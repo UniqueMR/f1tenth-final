@@ -70,7 +70,7 @@ Executer::Executer()
     );   
 
     //initialize the current state
-    curr_state = execState::OVERTAKE;
+    curr_state = execState::NORMAL;
 
     return;
 }
