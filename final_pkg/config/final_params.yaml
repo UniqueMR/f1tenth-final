@@ -20,7 +20,7 @@
     rrt_max_expansion_dist: 0.75
     rrt_obs_clear_rate: 5
     rrt_kp: 1.0
-    rrt_speed: 3.0
+    rrt_speed: 1.0
     rrt_search_radius: 0.5
     rrt_hit_dist: 0.05
     rrt_star_enable: false

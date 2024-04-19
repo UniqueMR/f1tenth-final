@@ -24,7 +24,7 @@ class Planner(Node):
         #     self.curr_state = 'normal'
         # else:
         #     pass
-        self.curr_state = 'normal'
+        self.curr_state = 'overtake'
         
         state_msg = String()
         state_msg.data = self.curr_state

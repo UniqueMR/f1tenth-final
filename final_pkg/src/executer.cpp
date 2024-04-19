@@ -70,7 +70,7 @@ Executer::Executer()
     );   
 
     //initialize the current state
-    curr_state = execState::NORMAL;
+    curr_state = execState::OVERTAKE;
 
     return;
 }
@@ -137,6 +137,8 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
 void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     RCLCPP_INFO(this->get_logger(), "select rrt strategy...\n");
     
+    if(rrt_handler->clear_state)    return;
+
     rrt_handler->init_tree(pose_msg);
     geometry_msgs::msg::PointStamped curr_vehicle_world;
     curr_vehicle_world.point.x = pose_msg->pose.pose.position.x;
@@ -192,11 +194,9 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     rrt_handler->visualized_points.points.clear();
     for (int i=0; i < path.size(); i++)
     {
-        geometry_msgs::msg::Point p;
-        p.x = path[i].x, p.y = path[i].y, p.z = 0;
-        rrt_handler->visualized_points.points.push_back(p);
+        rrt_handler->visualize_increment_path(path[i]);
+        marker_publisher_->publish(rrt_handler->visualized_points);
     }
-    marker_publisher_->publish(rrt_handler->visualized_points);
 
     std::vector<double> steerings = rrt_handler->follow_path(
         path, pure_pursuit_handler->t, this->get_parameter("rrt_tree_look_ahead_dist").as_double(), this->get_parameter("rrt_kp").as_double()
@@ -206,7 +206,6 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
         drive_msg.drive.steering_angle = (steer < 0.0) ? std::max(steer, -0.349) : std::min(steer, 0.349);
         drive_msg.drive.speed = this->get_parameter("rrt_speed").as_double();
-        // drive_msg.drive.speed = 0.0;
         drive_publisher_->publish(drive_msg);
     }
 }

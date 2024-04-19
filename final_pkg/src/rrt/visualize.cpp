@@ -18,7 +18,7 @@ void rrtHandler::init_map_header(std::string frame_id){
 }
 
 void rrtHandler::init_marker(std::string parent_frame_id){
-    visualized_points.header.frame_id = parent_frame_id; // Change to your frame ID
+    visualized_points.header.frame_id = parent_frame_id;
     visualized_points.ns = "sampled_points";
     visualized_points.action = visualization_msgs::msg::Marker::ADD;
     visualized_points.pose.orientation.w = 1.0;
@@ -27,11 +27,17 @@ void rrtHandler::init_marker(std::string parent_frame_id){
     visualized_points.type = visualization_msgs::msg::Marker::LINE_STRIP;
 
     // POINTS markers use x and y scale for width/height respectively
-    visualized_points.scale.x = 0.2; // Specify the size of the point
-    visualized_points.scale.y = 0.2;
+    visualized_points.scale.x = 0.05; // Specify the size of the point
+    visualized_points.scale.y = 0.05;
 
     visualized_points.color.r = 1.0f; // Set the red component to full intensity
     visualized_points.color.g = 0.0f; // Set the green component to zero
     visualized_points.color.b = 0.0f; // Set the blue component to zero
     visualized_points.color.a = 1.0f; // Don't forget to set the alpha!
+}
+
+void rrtHandler::visualize_increment_path(RRT_Node path_pt){
+    geometry_msgs::msg::Point p;
+    p.x = path_pt.x, p.y = path_pt.y, p.z = 0;
+    visualized_points.points.push_back(p);
 }

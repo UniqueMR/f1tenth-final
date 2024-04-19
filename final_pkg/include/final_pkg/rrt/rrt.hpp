@@ -1,6 +1,7 @@
 #include <string>
 #include <memory>
 #include <random>
+#include <algorithm>
 #include "utils/csv_loader.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
@@ -29,6 +30,7 @@ public:
     // visualization
     visualization_msgs::msg::Marker visualized_points;
     int clear_obs_cnt = 0;
+    bool clear_state = false;
     std::shared_ptr<nav_msgs::msg::OccupancyGrid> updated_map;
     void update_occupancy_grid(
         const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg,
@@ -38,6 +40,7 @@ public:
         geometry_msgs::msg::PointStamped pt_world,
         double bubble_offset
     );
+    void visualize_increment_path(RRT_Node path_pt);
 
     // transformation
     geometry_msgs::msg::TransformStamped t;
