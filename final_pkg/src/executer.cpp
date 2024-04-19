@@ -180,9 +180,6 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
             )   continue;
         }
 
-        if(rrt_handler->check_collision(new_node.parent, new_node, 10))
-            continue;
-
         rrt_handler->tree.push_back(new_node);
         node_tracker = new_node;
 
