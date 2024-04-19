@@ -6,6 +6,7 @@ rrtHandler::rrtHandler(std::string waypoints_path, std::string parent_frame_id){
     way_points = dataloader->way_points;
     updated_map = std::make_shared<nav_msgs::msg::OccupancyGrid>();
     init_map_header(parent_frame_id);
+    init_marker(parent_frame_id);
 }
 
 rrtHandler::~rrtHandler(){
@@ -242,6 +243,80 @@ void rrtHandler::rearrange_tree(int best_neighbor_idx, std::vector<int> neighbor
     }
 }
 
+std::vector<double> rrtHandler::get_target_pt(
+    geometry_msgs::msg::PointStamped curr_pt_world, 
+    geometry_msgs::msg::TransformStamped t, double look_ahead_dist){
+    double target_pt_dist = std::numeric_limits<double>::infinity();
+    geometry_msgs::msg::PointStamped next_pt_local_temp, next_pt_world_temp, next_pt_world;
+
+    geometry_msgs::msg::PointStamped curr_pt_local;
+    try {
+    tf2::doTransform(curr_pt_world, curr_pt_local, t);
+    } catch (const tf2::TransformException &ex) {
+    std::cout << "current point transformation failed" << std::endl;
+    }
+
+    // search in way_points for potential target
+    for(auto way_point : way_points){
+        double curr_pt_dist = std::sqrt(std::pow((way_point.x - curr_pt_world.point.x), 2) + std::pow((way_point.y - curr_pt_world.point.y), 2));
+        // pass points inside lookahead distance
+        if(curr_pt_dist < look_ahead_dist)   continue;
+        if(curr_pt_dist < target_pt_dist){
+            //transform potential target to local frame
+            try {
+            next_pt_world_temp.point.x = way_point.x;
+            next_pt_world_temp.point.y = way_point.y;
+            tf2::doTransform(next_pt_world_temp, next_pt_local_temp, t);
+            } catch (const tf2::TransformException &ex) {
+            std::cout << "next point transformation failed" << std::endl;
+            }
+            
+            // pass way_point that falls behind
+            if(next_pt_local_temp.point.x <= curr_pt_local.point.x)   continue;
+
+            // update selected next point in world frame
+            target_pt_dist = curr_pt_dist;
+            next_pt_world.point.x = curr_pt_world.point.x + (way_point.x - curr_pt_world.point.x) * look_ahead_dist / curr_pt_dist;
+            next_pt_world.point.y = curr_pt_world.point.y + (way_point.y - curr_pt_world.point.y) * look_ahead_dist / curr_pt_dist;
+        }
+    }
+
+    std::vector<double> next_pt_world_vec;
+    next_pt_world_vec.push_back(next_pt_world.point.x);
+    next_pt_world_vec.push_back(next_pt_world.point.y);
+    return next_pt_world_vec;
+}
+
+std::vector<RRT_Node> rrtHandler::find_path(RRT_Node target_node){
+    RRT_Node searched_node = target_node;
+    std::vector<RRT_Node> path;
+    while(searched_node.is_root == false){
+        path.push_back(searched_node);
+        searched_node = tree[searched_node.parent];
+    }
+    return path;
+}
+
+std::vector<double> rrtHandler::follow_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t, double look_ahead_dist, double kp){
+    std::vector<double> steerings;
+    geometry_msgs::msg::PointStamped curr_pt_local, next_pt_world, next_pt_local;
+    curr_pt_local.point.x = 0, curr_pt_local.point.y = 0;
+    for(RRT_Node path_pt : path){
+        next_pt_world.point.x = path_pt.x, next_pt_world.point.y = path_pt.y;
+        try{
+            tf2::doTransform(next_pt_world, next_pt_local, t);
+        }
+        catch(tf2::TransformException &ex){
+            std::cout << "path world to local failed!" << std::endl;
+        }
+        double y = next_pt_local.point.y - curr_pt_local.point.y;
+        double curvature = (2 * y) / (look_ahead_dist * look_ahead_dist);
+        steerings.push_back(kp * curvature);
+        curr_pt_local = next_pt_local;
+    }
+    return steerings;
+}
+
 void rrtHandler::init_map_header(std::string frame_id){
     updated_map->header.frame_id = frame_id;
     // Specify the layout of the map
@@ -257,4 +332,23 @@ void rrtHandler::init_map_header(std::string frame_id){
     updated_map->info.origin.orientation.w = 1.0;
 
     updated_map->data.assign(updated_map->info.width * updated_map->info.height, -1);
+}
+
+void rrtHandler::init_marker(std::string parent_frame_id){
+    visualized_points.header.frame_id = parent_frame_id; // Change to your frame ID
+    visualized_points.ns = "sampled_points";
+    visualized_points.action = visualization_msgs::msg::Marker::ADD;
+    visualized_points.pose.orientation.w = 1.0;
+
+    visualized_points.id = 0;
+    visualized_points.type = visualization_msgs::msg::Marker::POINTS;
+
+    // POINTS markers use x and y scale for width/height respectively
+    visualized_points.scale.x = 0.2; // Specify the size of the point
+    visualized_points.scale.y = 0.2;
+
+    visualized_points.color.r = 1.0f; // Set the red component to full intensity
+    visualized_points.color.g = 0.0f; // Set the green component to zero
+    visualized_points.color.b = 0.0f; // Set the blue component to zero
+    visualized_points.color.a = 1.0f; // Don't forget to set the alpha!
 }

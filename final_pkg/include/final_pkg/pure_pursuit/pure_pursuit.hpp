@@ -14,6 +14,7 @@
 
 class purepursuitHandler{
 public:
+    geometry_msgs::msg::TransformStamped t;
     purepursuitHandler(std::string waypoints_path);
     virtual ~purepursuitHandler();
     void update_params(double look_ahead_dist, double kp, double x, double y);
@@ -29,5 +30,4 @@ private:
     std::vector<wayPoint> way_points;
 
     geometry_msgs::msg::PointStamped curr_pt_world, next_pt_world, curr_pt_local, next_pt_local;
-    geometry_msgs::msg::TransformStamped t;
 };

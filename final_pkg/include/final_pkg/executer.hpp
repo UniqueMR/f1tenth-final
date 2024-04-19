@@ -48,7 +48,7 @@ private:
     bool online;
 
     // topics
-    std::string occupancy_grid_topic, pose_topic, scan_topic, state_topic, drive_topic;
+    std::string occupancy_grid_topic, pose_topic, scan_topic, state_topic, drive_topic, marker_topic;
 
     execState curr_state;
 
@@ -65,7 +65,7 @@ private:
 
     rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr drive_publisher_;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr occupancy_grid_publisher_;
-    rclcpp::Publisher<visualization_msgs::msg::Marker>::ConstSharedPtr marker_publisher_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_publisher_;
 
     //callbacks
     void pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);

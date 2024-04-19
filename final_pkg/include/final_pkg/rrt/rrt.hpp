@@ -7,6 +7,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/point_stamped.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "visualization_msgs/msg/marker.hpp"
 #include "tf2_ros/buffer.h"
 
 typedef struct RRT_Node {
@@ -22,10 +23,11 @@ public:
     virtual ~rrtHandler();
     // init 
     void init_map_header(std::string frame_id);
-    void init_marker( void ); 
+    void init_marker(std::string parent_frame_id);
     void init_tree(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
 
     // visualization
+    visualization_msgs::msg::Marker visualized_points;
     int clear_obs_cnt = 0;
     std::shared_ptr<nav_msgs::msg::OccupancyGrid> updated_map;
     void update_occupancy_grid(
@@ -59,7 +61,10 @@ public:
     std::vector<int> near(RRT_Node node, int search_radius);
     int link_best_neighbor(RRT_Node &new_node, std::vector<int> neighbor_indices, std::vector<bool> &neighbor_collided, int check_pts_num);
     void rearrange_tree(int best_neighbor_idx, std::vector<int> neighbor_indices, std::vector<bool> neighbor_collided, RRT_Node new_node);
-
+    std::vector<double> get_target_pt(geometry_msgs::msg::PointStamped curr_pt_world, geometry_msgs::msg::TransformStamped t, double look_ahead_dist);
+    std::vector<RRT_Node> find_path(RRT_Node target_node);
+    std::vector<double> follow_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t, double look_ahead_dist, double kp);
+    
 private:  
     std::unique_ptr<wayPointLoader> dataloader;
     std::vector<wayPoint> way_points;

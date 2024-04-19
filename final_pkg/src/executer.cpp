@@ -23,6 +23,7 @@ Executer::Executer()
     this->declare_parameter<int>("rrt_bubble_offset", 1);
     this->declare_parameter<bool>("rrt_star_enable", true);
     this->declare_parameter<double>("rrt_search_radius", 0.5);
+    this->declare_parameter<double>("rrt_hit_dist", 0.05);
 
     // initialize topic
     occupancy_grid_topic = "dynamic_map";
@@ -30,6 +31,7 @@ Executer::Executer()
     scan_topic = "/scan";
     state_topic = "strategy";
     drive_topic = "drive";
+    marker_topic = "visualization_marker";
 
     // initialize publisher and subscriber
     odom_subscriber_ = this->create_subscription<nav_msgs::msg::Odometry>(
@@ -48,6 +50,8 @@ Executer::Executer()
     occupancy_grid_publisher_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
         occupancy_grid_topic, 10
     );
+    marker_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>(marker_topic, 10);
+
 
     // initialize frames and tf buffer and listener
     parent_frame_id = "map";
@@ -63,7 +67,7 @@ Executer::Executer()
     rrt_handler = std::make_unique<rrtHandler>(
         this->get_parameter("waypoints_path").as_string().c_str(),
         parent_frame_id.c_str()
-    );    
+    );   
 
     //initialize the current state
     curr_state = execState::OVERTAKE;
@@ -77,6 +81,16 @@ Executer::~Executer()
 }
 
 void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
+    pure_pursuit_handler->update_params(
+        this->get_parameter("pp_look_ahead_distance").as_double(),
+        this->get_parameter("pp_kp").as_double(),
+        pose_msg->pose.pose.position.x,
+        pose_msg->pose.pose.position.y
+    );
+
+    pure_pursuit_handler->get_transform_stamp_W2L(parent_frame_id, child_frame_id, tf_buffer_);
+    rrt_handler->get_transform_stamp_L2W(parent_frame_id, child_frame_id, tf_buffer_);
+
     switch(curr_state){
         case execState::NORMAL:
             pure_pursuit(pose_msg);
@@ -94,37 +108,18 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
 }
 
 void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg){
-    switch(curr_state){
-        case execState::OVERTAKE:
-            rrt_handler->update_occupancy_grid(
-                scan_msg,
-                this->get_parameter("rrt_look_ahead_dist").as_double(),
-                this->get_parameter("rrt_bubble_offset").as_int(),
-                this->get_parameter("rrt_obs_clear_rate").as_int()
-            );
-            rrt_handler->updated_map->header.stamp = this->now();
-            occupancy_grid_publisher_->publish(*(rrt_handler->updated_map));
-            break;
-        default:
-            RCLCPP_INFO(this->get_logger(), "occupancy grid idle\n");
-    }
+    rrt_handler->update_occupancy_grid(
+        scan_msg,
+        this->get_parameter("rrt_look_ahead_dist").as_double(),
+        this->get_parameter("rrt_bubble_offset").as_int(),
+        this->get_parameter("rrt_obs_clear_rate").as_int()
+    );
+    rrt_handler->updated_map->header.stamp = this->now();
+    occupancy_grid_publisher_->publish(*(rrt_handler->updated_map));
 }
 
 void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     RCLCPP_INFO(this->get_logger(), "select pure pursuit strategy...\n");
-    // get params each stamp
-    pure_pursuit_handler->update_params(
-        this->get_parameter("pp_look_ahead_distance").as_double(),
-        this->get_parameter("pp_kp").as_double(),
-        pose_msg->pose.pose.position.x,
-        pose_msg->pose.pose.position.y
-    );
-
-    pure_pursuit_handler->get_transform_stamp_W2L(
-        parent_frame_id,
-        child_frame_id,
-        tf_buffer_
-    );
     // compute the next look ahead point
     pure_pursuit_handler->get_lookahead_pt();
 
@@ -143,13 +138,16 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     RCLCPP_INFO(this->get_logger(), "select rrt strategy...\n");
     
     rrt_handler->init_tree(pose_msg);
-    rrt_handler->get_transform_stamp_L2W(
-        parent_frame_id,
-        child_frame_id,
-        tf_buffer_
-    );
+    geometry_msgs::msg::PointStamped curr_vehicle_world;
+    curr_vehicle_world.point.x = pose_msg->pose.pose.position.x;
+    curr_vehicle_world.point.y = pose_msg->pose.pose.position.y;
+    std::vector<double> target_pt_world = rrt_handler->get_target_pt(
+        curr_vehicle_world, pure_pursuit_handler->t, this->get_parameter("rrt_tree_look_ahead_dist").as_double());
+    std::vector<RRT_Node> path; 
+    RRT_Node node_tracker;
 
-    for(int cnt = 0; cnt < this->get_parameter("rrt_iter").as_int(); cnt++){
+    int cnt;
+    for(cnt = 0; cnt < this->get_parameter("rrt_iter").as_int(); cnt++){
         std::vector<double> sampled_node_pt = rrt_handler->sample(
             this->get_parameter("rrt_look_ahead_dist").as_double()
         );
@@ -165,7 +163,7 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
 
         if(this->get_parameter("rrt_star_enable").as_bool()){
             new_node.cost = rrt_handler->cost(new_node);
-            std::vector<int> neighbor_indices = rrt_handler->near(new_node, this->get_parameter("rrt_search_radius").as_int());
+            std::vector<int> neighbor_indices = rrt_handler->near(new_node, this->get_parameter("rrt_search_radius").as_double());
             std::vector<bool> neighbor_collided;
 
             int best_neighbor_idx = rrt_handler->link_best_neighbor(new_node, neighbor_indices, neighbor_collided, this->get_parameter("rrt_check_pts_num").as_int());
@@ -180,6 +178,36 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
         }
 
         rrt_handler->tree.push_back(new_node);
+        node_tracker = new_node;
+
+        if(rrt_handler->calcDistance(target_pt_world, new_node.x, new_node.y) < this->get_parameter("rrt_hit_dist").as_double()){
+            path = rrt_handler->find_path(new_node);
+            break;
+        }
+    }
+    if(cnt == this->get_parameter("rrt_iter").as_int())
+        path = rrt_handler->find_path(node_tracker);
+
+    // visualize the points
+    rrt_handler->visualized_points.points.clear();
+    for (int i=0; i < path.size(); i++)
+    {
+        geometry_msgs::msg::Point p;
+        p.x = path[i].x, p.y = path[i].y, p.z = 0;
+        rrt_handler->visualized_points.points.push_back(p);
+    }
+    marker_publisher_->publish(rrt_handler->visualized_points);
+
+    std::vector<double> steerings = rrt_handler->follow_path(
+        path, pure_pursuit_handler->t, this->get_parameter("rrt_tree_look_ahead_dist").as_double(), this->get_parameter("rrt_kp").as_double()
+    );
+
+    for(double steer : steerings){
+        auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
+        drive_msg.drive.steering_angle = (steer < 0.0) ? std::max(steer, -0.349) : std::min(steer, 0.349);
+        drive_msg.drive.speed = this->get_parameter("rrt_speed").as_double();
+        // drive_msg.drive.speed = 0.0;
+        drive_publisher_->publish(drive_msg);
     }
 }
 
