@@ -13,7 +13,6 @@ Executer::Executer()
 
     // rrt parameters
     this->declare_parameter<double>("rrt_look_ahead_dist", 6.0);
-    this->declare_parameter<double>("rrt_tree_look_ahead_dist", 1.5);
     this->declare_parameter<int>("rrt_iter", 25);
     this->declare_parameter<int>("rrt_check_pts_num", 200);
     this->declare_parameter<double>("rrt_max_expansion_dist", 0.75);
@@ -140,11 +139,12 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     if(rrt_handler->clear_state)    return;
 
     rrt_handler->init_tree(pose_msg);
-    geometry_msgs::msg::PointStamped curr_vehicle_world;
-    curr_vehicle_world.point.x = pose_msg->pose.pose.position.x;
-    curr_vehicle_world.point.y = pose_msg->pose.pose.position.y;
+    
     std::vector<double> target_pt_world = rrt_handler->get_target_pt(
-        curr_vehicle_world, pure_pursuit_handler->t, this->get_parameter("rrt_tree_look_ahead_dist").as_double());
+        pose_msg, pure_pursuit_handler->t, this->get_parameter("rrt_look_ahead_dist").as_double());
+    rrt_handler->visualize_target(target_pt_world);
+    marker_publisher_->publish(rrt_handler->visualized_target);
+
     std::vector<RRT_Node> path; 
     RRT_Node node_tracker;
 
@@ -167,10 +167,11 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
             new_node.cost = rrt_handler->cost(new_node);
             std::vector<int> neighbor_indices = rrt_handler->near(new_node, this->get_parameter("rrt_search_radius").as_double());
             std::vector<bool> neighbor_collided;
-
             int best_neighbor_idx = rrt_handler->link_best_neighbor(new_node, neighbor_indices, neighbor_collided, this->get_parameter("rrt_check_pts_num").as_int());
-
-            rrt_handler->rearrange_tree(best_neighbor_idx, neighbor_indices, neighbor_collided, new_node);
+            if(rrt_handler->check_collision(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int()))
+                continue;
+            if(best_neighbor_idx != -1)
+                rrt_handler->rearrange_tree(best_neighbor_idx, neighbor_indices, neighbor_collided, new_node);
         }
         else{
             if(rrt_handler->check_collision(
@@ -178,6 +179,9 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
                 this->get_parameter("rrt_check_pts_num").as_int())
             )   continue;
         }
+
+        if(rrt_handler->check_collision(new_node.parent, new_node, 10))
+            continue;
 
         rrt_handler->tree.push_back(new_node);
         node_tracker = new_node;
@@ -187,19 +191,20 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
             break;
         }
     }
-    if(cnt == this->get_parameter("rrt_iter").as_int())
-        path = rrt_handler->find_path(node_tracker);
+    // if(cnt == this->get_parameter("rrt_iter").as_int())
+    //     path = rrt_handler->find_path(node_tracker);
 
     // visualize the points
     rrt_handler->visualized_points.points.clear();
+    rrt_handler->visualize_increment_path(rrt_handler->tree[0]);
     for (int i=0; i < path.size(); i++)
     {
         rrt_handler->visualize_increment_path(path[i]);
-        marker_publisher_->publish(rrt_handler->visualized_points);
     }
+    marker_publisher_->publish(rrt_handler->visualized_points);
 
     std::vector<double> steerings = rrt_handler->follow_path(
-        path, pure_pursuit_handler->t, this->get_parameter("rrt_tree_look_ahead_dist").as_double(), this->get_parameter("rrt_kp").as_double()
+        path, pure_pursuit_handler->t, this->get_parameter("rrt_kp").as_double()
     );
 
     for(double steer : steerings){

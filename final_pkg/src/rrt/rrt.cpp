@@ -126,10 +126,10 @@ bool rrtHandler::is_collide(std::vector<double> sampled_pt){
 }
 
 int rrtHandler::nearest(std::vector<double> sampled_node_pt){
-    int nearest_node = 0;
+    int nearest_node = -1;
     double nearest_dist = std::numeric_limits<double>::infinity();
     // TODO: fill in this method 
-    for(unsigned int i = 0; i < tree.size(); i++)
+    for(int i = 0; i < tree.size(); i++)
     {   
         double distance = calcDistance(sampled_node_pt, tree[i].x, tree[i].y); 
         if(distance < nearest_dist)
@@ -209,7 +209,7 @@ std::vector<int> rrtHandler::near(RRT_Node node, int search_radius) {
 }
 
 int rrtHandler::link_best_neighbor(RRT_Node &new_node, std::vector<int> neighbor_indices, std::vector<bool> &neighbor_collided, int check_pts_num){
-    int best_neighbor_idx = tree.size();
+    int best_neighbor_idx = -1;
     for(const int neighbor_idx : neighbor_indices){
         if(check_collision(neighbor_idx, new_node, check_pts_num)){
             neighbor_collided.push_back(true);
@@ -242,12 +242,13 @@ void rrtHandler::rearrange_tree(int best_neighbor_idx, std::vector<int> neighbor
 }
 
 std::vector<double> rrtHandler::get_target_pt(
-    geometry_msgs::msg::PointStamped curr_pt_world, 
+    nav_msgs::msg::Odometry::ConstSharedPtr pose_msg, 
     geometry_msgs::msg::TransformStamped t, double look_ahead_dist){
     double target_pt_dist = std::numeric_limits<double>::infinity();
-    geometry_msgs::msg::PointStamped next_pt_local_temp, next_pt_world_temp, next_pt_world;
 
-    geometry_msgs::msg::PointStamped curr_pt_local;
+    geometry_msgs::msg::PointStamped curr_pt_world, curr_pt_local, next_pt_local_temp, next_pt_world_temp, next_pt_world;
+    curr_pt_world.point.x = pose_msg->pose.pose.position.x;
+    curr_pt_world.point.y = pose_msg->pose.pose.position.y;
     try {
     tf2::doTransform(curr_pt_world, curr_pt_local, t);
     } catch (const tf2::TransformException &ex) {
@@ -296,7 +297,7 @@ std::vector<RRT_Node> rrtHandler::find_path(RRT_Node target_node){
     return path;
 }
 
-std::vector<double> rrtHandler::follow_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t, double look_ahead_dist, double kp){
+std::vector<double> rrtHandler::follow_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t, double kp){
     std::vector<double> steerings;
     geometry_msgs::msg::PointStamped curr_pt_local, next_pt_world, next_pt_local;
     curr_pt_local.point.x = 0, curr_pt_local.point.y = 0;
@@ -308,7 +309,9 @@ std::vector<double> rrtHandler::follow_path(std::vector<RRT_Node> path, geometry
         catch(tf2::TransformException &ex){
             std::cout << "path world to local failed!" << std::endl;
         }
+        double x = next_pt_local.point.x - curr_pt_local.point.x;
         double y = next_pt_local.point.y - curr_pt_local.point.y;
+        double look_ahead_dist = std::sqrt(x * x + y * y);
         double curvature = (2 * y) / (look_ahead_dist * look_ahead_dist);
         steerings.push_back(kp * curvature);
         curr_pt_local = next_pt_local;

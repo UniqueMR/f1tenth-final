@@ -29,6 +29,7 @@ public:
 
     // visualization
     visualization_msgs::msg::Marker visualized_points;
+    visualization_msgs::msg::Marker visualized_target;
     int clear_obs_cnt = 0;
     bool clear_state = false;
     std::shared_ptr<nav_msgs::msg::OccupancyGrid> updated_map;
@@ -41,6 +42,7 @@ public:
         double bubble_offset
     );
     void visualize_increment_path(RRT_Node path_pt);
+    void visualize_target(std::vector<double> target);
 
     // transformation
     geometry_msgs::msg::TransformStamped t;
@@ -64,9 +66,10 @@ public:
     std::vector<int> near(RRT_Node node, int search_radius);
     int link_best_neighbor(RRT_Node &new_node, std::vector<int> neighbor_indices, std::vector<bool> &neighbor_collided, int check_pts_num);
     void rearrange_tree(int best_neighbor_idx, std::vector<int> neighbor_indices, std::vector<bool> neighbor_collided, RRT_Node new_node);
-    std::vector<double> get_target_pt(geometry_msgs::msg::PointStamped curr_pt_world, geometry_msgs::msg::TransformStamped t, double look_ahead_dist);
+    std::vector<double> get_target_pt(nav_msgs::msg::Odometry::ConstSharedPtr pose_msg, geometry_msgs::msg::TransformStamped t, double look_ahead_dist);
+
     std::vector<RRT_Node> find_path(RRT_Node target_node);
-    std::vector<double> follow_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t, double look_ahead_dist, double kp);
+    std::vector<double> follow_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t, double kp);
     
 private:  
     std::unique_ptr<wayPointLoader> dataloader;
