@@ -13,12 +13,17 @@ Executer::Executer()
 
     // rrt parameters
     this->declare_parameter<double>("rrt_look_ahead_dist", 6.0);
+    this->declare_parameter<double>("rrt_track_dist", 1.5);
     this->declare_parameter<int>("rrt_iter", 25);
     this->declare_parameter<int>("rrt_check_pts_num", 200);
     this->declare_parameter<double>("rrt_max_expansion_dist", 0.75);
     this->declare_parameter<int>("rrt_obs_clear_rate", 10);
     this->declare_parameter<double>("rrt_kp", 1.0);
-    this->declare_parameter<double>("rrt_speed", 3.0);
+
+    this->declare_parameter<double>("rrt_high_speed", 3.0);
+    this->declare_parameter<double>("rrt_medium_speed", 3.0);
+    this->declare_parameter<double>("rrt_low_speed", 3.0);
+
     this->declare_parameter<int>("rrt_bubble_offset", 1);
     this->declare_parameter<bool>("rrt_star_enable", true);
     this->declare_parameter<double>("rrt_search_radius", 0.5);
@@ -191,28 +196,20 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
         }
     }
 
-    // // visualize the points
-    // rrt_handler->visualized_points.points.clear();
-    // rrt_handler->visualize_local_path(rrt_handler->tree[0]);
-    // for (int i=0; i < path.size(); i++)
-    // {
-    //     rrt_handler->visualize_local_path(path[i]);
-    // }
-    // marker_publisher_->publish(rrt_handler->visualized_points);
-
     rrt_handler->ema_enable = this->get_parameter("rrt_ema_enable").as_bool();
     rrt_handler->ema_alpha = this->get_parameter("rrt_ema_alpha").as_double();
     std::vector<RRT_Node> local_path = rrt_handler->get_local_path(path, pure_pursuit_handler->t);
 
+    // visualize the path
     rrt_handler->visualize_local_path(local_path);
     marker_publisher_->publish(rrt_handler->visualized_points);
 
-    // for(double steer : steerings){
-    //     auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
-    //     drive_msg.drive.steering_angle = (steer < 0.0) ? std::max(steer, -0.349) : std::min(steer, 0.349);
-    //     drive_msg.drive.speed = this->get_parameter("rrt_speed").as_double();
-    //     drive_publisher_->publish(drive_msg);
-    // }
+    rrt_handler->high_speed = this->get_parameter("rrt_high_speed").as_double();
+    rrt_handler->medium_speed = this->get_parameter("rrt_medium_speed").as_double();
+    rrt_handler->low_speed = this->get_parameter("rrt_low_speed").as_double();
+    rrt_handler->kp = this->get_parameter("rrt_kp").as_double();
+    ackermann_msgs::msg::AckermannDriveStamped control = rrt_handler->follow_path(local_path, this->get_parameter("rrt_track_dist").as_double());
+    if(control.drive.speed >= 0.0) drive_publisher_->publish(control);
 }
 
 void Executer::blocking(){

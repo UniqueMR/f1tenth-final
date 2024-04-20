@@ -329,3 +329,32 @@ std::vector<RRT_Node> rrtHandler::get_local_path(std::vector<RRT_Node> path, geo
 
     return local_path;
 }
+
+ackermann_msgs::msg::AckermannDriveStamped rrtHandler::follow_path(std::vector<RRT_Node> local_path, double track_dist){
+    // output steering & speed
+    double min_diff = std::numeric_limits<double>::max();
+    RRT_Node target_node;
+
+    // search for the target node to pursuit
+    for(const RRT_Node node : local_path){
+        double curr_diff = track_dist - std::sqrt(std::pow(node.x, 2) + std::pow(node.y, 2));
+        if(curr_diff < min_diff){
+            min_diff = curr_diff;
+            target_node.x = node.x, target_node.y = node.y;
+        }
+    }
+
+    // generate the steering and speed to pursuit the target node
+    ackermann_msgs::msg::AckermannDriveStamped control;
+    if(target_node.x < 0){   
+        control.drive.steering_angle = 0.0;
+        control.drive.speed = -1.0;
+        return control;
+    }
+
+    double y = target_node.y * track_dist / std::sqrt(std::pow(target_node.x, 2) + std::pow(target_node.y, 2));
+    double steering = 2 * kp * y / std::pow(track_dist, 2);
+    control.drive.steering_angle = (steering > 0.4) ? 0.4 : ((steering < -0.4) ? -0.4 : steering);
+    control.drive.speed = (steering < 0.1 && steering > -0.1) ? high_speed : ((steering > 0.2 || steering < -0.2) ? low_speed : medium_speed);
+    return control;
+}

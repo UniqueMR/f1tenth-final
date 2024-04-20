@@ -9,6 +9,7 @@
 #include "geometry_msgs/msg/point_stamped.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
+#include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 #include "tf2_ros/buffer.h"
 
 typedef struct RRT_Node {
@@ -26,6 +27,10 @@ public:
     // params
     bool ema_enable;
     double ema_alpha;
+
+    double high_speed, medium_speed, low_speed;
+
+    double kp;
 
     // init 
     void init_map_header(std::string frame_id);
@@ -76,6 +81,7 @@ public:
     std::vector<RRT_Node> find_path(RRT_Node target_node);
     void ema_smoothing_local(std::vector<RRT_Node> &path, double alpha);
     std::vector<RRT_Node> get_local_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t);
+    ackermann_msgs::msg::AckermannDriveStamped follow_path(std::vector<RRT_Node> local_path, double track_dist);
     
 private:
     std::unique_ptr<wayPointLoader> dataloader;
