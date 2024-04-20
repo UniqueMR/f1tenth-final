@@ -53,10 +53,22 @@ void rrtHandler::init_marker(std::string parent_frame_id){
     visualized_target.color.a = 1.0f; 
 }
 
-void rrtHandler::visualize_increment_path(RRT_Node path_pt){
-    geometry_msgs::msg::Point p;
-    p.x = path_pt.x, p.y = path_pt.y, p.z = 0.0;
-    visualized_points.points.push_back(p);
+void rrtHandler::visualize_local_path(std::vector<RRT_Node> local_path_node){
+    visualized_points.points.clear();
+    for(const RRT_Node node : local_path_node){
+        geometry_msgs::msg::PointStamped pt_local, pt_world;
+        pt_local.point.x = node.x, pt_local.point.y = node.y;
+        try{
+            tf2::doTransform(pt_local, pt_world, t);
+        }
+        catch(const tf2::TransformException &ex){
+            std::cout << "transform visualized point from local to world failed!" << std::endl;
+        }
+        geometry_msgs::msg::Point p;
+        p.x = pt_world.point.x, p.y = pt_world.point.y, p.z = 0.0;
+        visualized_points.points.push_back(p);
+    }
+    return;
 }
 
 void rrtHandler::visualize_target(std::vector<double> target){

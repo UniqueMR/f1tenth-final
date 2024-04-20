@@ -23,6 +23,8 @@ Executer::Executer()
     this->declare_parameter<bool>("rrt_star_enable", true);
     this->declare_parameter<double>("rrt_search_radius", 0.5);
     this->declare_parameter<double>("rrt_hit_dist", 0.05);
+    this->declare_parameter<bool>("rrt_ema_enable", true);
+    this->declare_parameter<double>("rrt_ema_alpha", 0.2);
 
     // initialize topic
     occupancy_grid_topic = "dynamic_map";
@@ -188,28 +190,29 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
             break;
         }
     }
-    // if(cnt == this->get_parameter("rrt_iter").as_int())
-    //     path = rrt_handler->find_path(node_tracker);
 
-    // visualize the points
-    rrt_handler->visualized_points.points.clear();
-    rrt_handler->visualize_increment_path(rrt_handler->tree[0]);
-    for (int i=0; i < path.size(); i++)
-    {
-        rrt_handler->visualize_increment_path(path[i]);
-    }
+    // // visualize the points
+    // rrt_handler->visualized_points.points.clear();
+    // rrt_handler->visualize_local_path(rrt_handler->tree[0]);
+    // for (int i=0; i < path.size(); i++)
+    // {
+    //     rrt_handler->visualize_local_path(path[i]);
+    // }
+    // marker_publisher_->publish(rrt_handler->visualized_points);
+
+    rrt_handler->ema_enable = this->get_parameter("rrt_ema_enable").as_bool();
+    rrt_handler->ema_alpha = this->get_parameter("rrt_ema_alpha").as_double();
+    std::vector<RRT_Node> local_path = rrt_handler->get_local_path(path, pure_pursuit_handler->t);
+
+    rrt_handler->visualize_local_path(local_path);
     marker_publisher_->publish(rrt_handler->visualized_points);
 
-    std::vector<double> steerings = rrt_handler->follow_path(
-        path, pure_pursuit_handler->t, this->get_parameter("rrt_kp").as_double()
-    );
-
-    for(double steer : steerings){
-        auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
-        drive_msg.drive.steering_angle = (steer < 0.0) ? std::max(steer, -0.349) : std::min(steer, 0.349);
-        drive_msg.drive.speed = this->get_parameter("rrt_speed").as_double();
-        drive_publisher_->publish(drive_msg);
-    }
+    // for(double steer : steerings){
+    //     auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
+    //     drive_msg.drive.steering_angle = (steer < 0.0) ? std::max(steer, -0.349) : std::min(steer, 0.349);
+    //     drive_msg.drive.speed = this->get_parameter("rrt_speed").as_double();
+    //     drive_publisher_->publish(drive_msg);
+    // }
 }
 
 void Executer::blocking(){

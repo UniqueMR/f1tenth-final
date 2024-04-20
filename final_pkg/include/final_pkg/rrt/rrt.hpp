@@ -22,6 +22,11 @@ class rrtHandler{
 public:
     rrtHandler(std::string waypoints_path, std::string parent_frame_id);
     virtual ~rrtHandler();
+
+    // params
+    bool ema_enable;
+    double ema_alpha;
+
     // init 
     void init_map_header(std::string frame_id);
     void init_marker(std::string parent_frame_id);
@@ -41,7 +46,7 @@ public:
         geometry_msgs::msg::PointStamped pt_world,
         double bubble_offset
     );
-    void visualize_increment_path(RRT_Node path_pt);
+    void visualize_local_path(std::vector<RRT_Node> local_path_node);
     void visualize_target(std::vector<double> target);
 
     // transformation
@@ -69,9 +74,10 @@ public:
     std::vector<double> get_target_pt(nav_msgs::msg::Odometry::ConstSharedPtr pose_msg, geometry_msgs::msg::TransformStamped t, double look_ahead_dist);
 
     std::vector<RRT_Node> find_path(RRT_Node target_node);
-    std::vector<double> follow_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t, double kp);
+    void ema_smoothing_local(std::vector<RRT_Node> &path, double alpha);
+    std::vector<RRT_Node> get_local_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t);
     
-private:  
+private:
     std::unique_ptr<wayPointLoader> dataloader;
     std::vector<wayPoint> way_points;
 

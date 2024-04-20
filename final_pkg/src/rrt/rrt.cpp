@@ -297,24 +297,35 @@ std::vector<RRT_Node> rrtHandler::find_path(RRT_Node target_node){
     return path;
 }
 
-std::vector<double> rrtHandler::follow_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t, double kp){
-    std::vector<double> steerings;
-    geometry_msgs::msg::PointStamped curr_pt_local, next_pt_world, next_pt_local;
-    curr_pt_local.point.x = 0, curr_pt_local.point.y = 0;
+void rrtHandler::ema_smoothing_local(std::vector<RRT_Node> &path, double alpha){
+    for(int i = 1; i < path.size(); i++){
+        path[i].y = alpha * path[i].y + (1 - alpha) * path[i - 1].y;
+    }
+    return;
+}
+
+std::vector<RRT_Node> rrtHandler::get_local_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t){
+    // transform path from world frame to local frame
+    std::vector<RRT_Node> local_path;
+    RRT_Node curr_node_local;
+    curr_node_local.x =0, curr_node_local.y = 0;
+    local_path.push_back(curr_node_local);
     for(RRT_Node path_pt : path){
-        next_pt_world.point.x = path_pt.x, next_pt_world.point.y = path_pt.y;
+        geometry_msgs::msg::PointStamped pt_world, pt_local;
+        pt_world.point.x = path_pt.x, pt_world.point.y = path_pt.y;
         try{
-            tf2::doTransform(next_pt_world, next_pt_local, t);
+            tf2::doTransform(pt_world, pt_local, t);
         }
         catch(tf2::TransformException &ex){
             std::cout << "path world to local failed!" << std::endl;
         }
-        double x = next_pt_local.point.x - curr_pt_local.point.x;
-        double y = next_pt_local.point.y - curr_pt_local.point.y;
-        double look_ahead_dist = std::sqrt(x * x + y * y);
-        double curvature = (2 * y) / (look_ahead_dist * look_ahead_dist);
-        steerings.push_back(kp * curvature);
-        curr_pt_local = next_pt_local;
+        RRT_Node node_local;
+        node_local.x = pt_local.point.x, node_local.y = pt_local.point.y;
+        local_path.push_back(node_local);
     }
-    return steerings;
+
+    // filter path in local frame
+    if(ema_enable)  ema_smoothing_local(local_path, ema_alpha);
+
+    return local_path;
 }

@@ -23,3 +23,5 @@
     rrt_search_radius: 1.5
     rrt_hit_dist: 0.1
     rrt_star_enable: true
+    rrt_ema_enable: true
+    rrt_ema_alpha: 0.5
