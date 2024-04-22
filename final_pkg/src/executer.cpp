@@ -9,6 +9,9 @@ Executer::Executer()
 
     // pure pursuit parameters
     this->declare_parameter<double>("pp_look_ahead_distance", 2.0);
+    this->declare_parameter<double>("pp_high_speed", 4.5);
+    this->declare_parameter<double>("pp_medium_speed", 1.5);
+    this->declare_parameter<double>("pp_low_speed", 1.0);
     this->declare_parameter<double>("pp_kp", 0.5);
 
     // rrt parameters
@@ -76,7 +79,7 @@ Executer::Executer()
     );   
 
     //initialize the current state
-    curr_state = execState::OVERTAKE;
+    curr_state = execState::NORMAL;
 
     return;
 }
@@ -135,7 +138,10 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
     ackermann_msgs::msg::AckermannDriveStamped drive_msg;
     if (steeringAngle < 0.0)    drive_msg.drive.steering_angle = std::max(steeringAngle, -0.349);
     else    drive_msg.drive.steering_angle = std::min(steeringAngle, 0.349);
-    drive_msg.drive.speed = 1.0;
+
+    drive_msg.drive.steering_angle = (steeringAngle < -0.349) ? -0.349 : ((steeringAngle > 0.349) ? 0.349 : steeringAngle);
+
+    drive_msg.drive.speed = (drive_msg.drive.steering_angle < 0.1 && drive_msg.drive.steering_angle > -0.1) ? this->get_parameter("pp_high_speed").as_double() : ((drive_msg.drive.steering_angle > 0.2 || drive_msg.drive.steering_angle < -0.2) ? this->get_parameter("pp_low_speed").as_double() : this->get_parameter("pp_medium_speed").as_double());
 
     drive_publisher_->publish(drive_msg);
 }
