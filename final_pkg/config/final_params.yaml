@@ -2,6 +2,14 @@
   ros__parameters:
     timer_period: 5.0
 
+/sim_map_node:
+  ros__parameters:
+    online: false # set the parameter to true while testing on the vehicle
+
+    sim_map_path: "src/f1tenth_gym_ros/maps/levine_blocked" #should be changed to particle filter on the vehicle
+    sim_map_img_ext: ".png"
+    sim_num_agents: 1
+
 /executer_node:
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle

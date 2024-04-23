@@ -128,7 +128,7 @@ void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr s
 }
 
 void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
-    RCLCPP_INFO(this->get_logger(), "select pure pursuit strategy...\n");
+    // RCLCPP_INFO(this->get_logger(), "select pure pursuit strategy...\n");
     // compute the next look ahead point
     pure_pursuit_handler->get_lookahead_pt();
 
@@ -147,7 +147,7 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
 }
 
 void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
-    RCLCPP_INFO(this->get_logger(), "select rrt strategy...\n");
+    // RCLCPP_INFO(this->get_logger(), "select rrt strategy...\n");
     
     if(rrt_handler->clear_state)    return;
 
