@@ -67,6 +67,16 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+install(PROGRAMS
+  scripts/waypoints/waypoint_logger.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(PROGRAMS
+  scripts/waypoints/waypoint_visualizer.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 # Install config files
 install(DIRECTORY config/
   DESTINATION share/${PROJECT_NAME}/config
