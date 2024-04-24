@@ -10,6 +10,10 @@
     sim_map_img_ext: ".png"
     sim_num_agents: 1
 
+/get_obs_node:
+  ros__parameters:
+    online: false
+
 /executer_node:
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle
