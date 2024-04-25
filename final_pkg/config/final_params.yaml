@@ -27,7 +27,7 @@
     waypoints_path: "src/final_pkg/path/using.csv"
 
     # rrt params
-    rrt_look_ahead_dist: 2.5
+    rrt_look_ahead_dist: 2.0
     rrt_track_dist: 1.5
     rrt_bubble_offset: 2
     rrt_iter: 2000
