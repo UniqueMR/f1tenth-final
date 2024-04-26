@@ -1,0 +1,11 @@
+map_name: final_race_clean
+map_img_ext: .pgm
+num_lanes: 1
+clockwise: true
+inner_safe_dist: 0.2
+outer_safe_dist: 0.2
+opp_safe_dist: 1.0
+resolution: 1080
+origin:
+  - 10
+  - 10
