@@ -14,7 +14,7 @@ plt.subplots_adjust(bottom=0.2)  # Make room for the 'Done' button
 
 # Plot existing waypoints
 ax.set_aspect('equal', 'box')
-ax.plot(waypoints[:, 0], waypoints[:, 1], marker='o')
+ax.plot(waypoints[:, 1], waypoints[:, 2], marker='o')
 ax.set_title('Click to Add Waypoints')
 ax.set_xlabel('X Coordinate')
 ax.set_ylabel('Y Coordinate')

@@ -18,7 +18,7 @@ class WaypointVisualizer(Node):
             csv_reader = csv.reader(file)
             for row in csv_reader:
                 if len(row) >= 2:
-                    x, y = float(row[0]), float(row[1])
+                    x, y = float(row[1]), float(row[2])
                     self.publish_marker(x, y)
 
     def publish_marker(self, x, y):
