@@ -1,12 +1,14 @@
-numpy==1.18.1
+# numpy==1.18.1
 matplotlib==3.3.1
 trajectory_planning_helpers==0.76
 
 # the following is required for minimum time optimization only
-casadi==3.5.5
-scipy==1.3.3
-scikit-learn==0.23.1
-
+# casadi==3.5.5
+casadi
+# scipy==1.3.3
+scipy
+# scikit-learn==0.23.1
+scikit-learn
 # the following is required for path generator
 opencv-contrib-python
 pyyaml
