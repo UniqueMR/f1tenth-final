@@ -1,0 +1,9 @@
+/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/install/strip.dir
+/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/install.dir
+/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/list_install_components.dir
+/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/rebuild_cache.dir
+/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/edit_cache.dir
+/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/test.dir
+/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/install/local.dir
+/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/vision_pkg_uninstall.dir
+/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/uninstall.dir

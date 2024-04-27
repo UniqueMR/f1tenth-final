@@ -1,0 +1,55 @@
+[0.008s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake /home/tanaya/lab-7-vision-lab-team-10/vision_pkg -DCMAKE_INSTALL_PREFIX=/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg
+[0.095s] -- The C compiler identification is GNU 7.5.0
+[0.193s] -- The CXX compiler identification is GNU 9.4.0
+[0.198s] -- Check for working C compiler: /usr/bin/cc
+[0.270s] -- Check for working C compiler: /usr/bin/cc -- works
+[0.271s] -- Detecting C compiler ABI info
+[0.340s] -- Detecting C compiler ABI info - done
+[0.346s] -- Detecting C compile features
+[0.347s] -- Detecting C compile features - done
+[0.349s] -- Check for working CXX compiler: /usr/bin/c++
+[0.403s] -- Check for working CXX compiler: /usr/bin/c++ -- works
+[0.403s] -- Detecting CXX compiler ABI info
+[0.445s] -- Detecting CXX compiler ABI info - done
+[0.451s] -- Detecting CXX compile features
+[0.451s] -- Detecting CXX compile features - done
+[0.453s] -- Found ament_cmake: 0.9.12 (/opt/ros/foxy/share/ament_cmake/cmake)
+[0.468s] -- Found PythonInterp: /usr/bin/python3 (found suitable version "3.8.10", minimum required is "3") 
+[0.468s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[0.576s] -- Found ament_lint_auto: 0.9.8 (/opt/ros/foxy/share/ament_lint_auto/cmake)
+[0.618s] -- Added test 'copyright' to check source files copyright and LICENSE
+[0.621s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[0.621s] -- Configured cppcheck include dirs: 
+[0.621s] -- Configured cppcheck exclude dirs and/or files: 
+[0.623s] -- Added test 'cpplint' to check C / C++ code against the Google style
+[0.623s] -- Configured cpplint exclude dirs and/or files: 
+[0.624s] -- Added test 'flake8' to check Python code syntax and style conventions
+[0.625s] -- Added test 'lint_cmake' to check CMake code style
+[0.625s] -- Added test 'pep257' to check Python code against some of the style conventions in PEP 257
+[0.627s] -- Added test 'uncrustify' to check C / C++ code style
+[0.627s] -- Configured uncrustify additional arguments: 
+[0.628s] -- Added test 'xmllint' to check XML markup files
+[0.629s] -- Configuring done
+[0.630s] -- Generating done
+[0.630s] -- Build files have been written to: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg
+[0.632s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '0': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake /home/tanaya/lab-7-vision-lab-team-10/vision_pkg -DCMAKE_INSTALL_PREFIX=/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg
+[0.634s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
+[0.655s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '0': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
+[0.672s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake --install /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg
+[0.681s] -- Install configuration: ""
+[0.681s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/ament_index/resource_index/package_run_dependencies/vision_pkg
+[0.681s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/ament_index/resource_index/parent_prefix_path/vision_pkg
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/ament_prefix_path.sh
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/ament_prefix_path.dsv
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/path.sh
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/path.dsv
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.bash
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.sh
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.zsh
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.dsv
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/package.dsv
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/ament_index/resource_index/packages/vision_pkg
+[0.682s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/cmake/vision_pkgConfig.cmake
+[0.683s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/cmake/vision_pkgConfig-version.cmake
+[0.683s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/package.xml
+[0.684s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '0': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake --install /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg

@@ -1,0 +1,26 @@
+[0.008s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
+[0.064s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '0': /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
+[0.098s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': /usr/bin/cmake --install /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg
+[0.106s] -- Install configuration: ""
+[0.107s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/getPixelCoord.py
+[0.107s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/camera.py
+[0.107s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/distance.py
+[0.107s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/f110_yolo_hw_final.py
+[0.107s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/intrinsicMat.py
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/get_pos_from_pixel.py
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/ament_index/resource_index/package_run_dependencies/vision_pkg
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/ament_index/resource_index/parent_prefix_path/vision_pkg
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/ament_prefix_path.sh
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/ament_prefix_path.dsv
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/path.sh
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/path.dsv
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.bash
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.sh
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.zsh
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.dsv
+[0.108s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/package.dsv
+[0.109s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/ament_index/resource_index/packages/vision_pkg
+[0.109s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/cmake/vision_pkgConfig.cmake
+[0.109s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/cmake/vision_pkgConfig-version.cmake
+[0.109s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/package.xml
+[0.110s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '0': /usr/bin/cmake --install /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg

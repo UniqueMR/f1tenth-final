@@ -1,0 +1,56 @@
+[0.008s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
+[0.022s] -- Found ament_cmake: 0.9.12 (/opt/ros/foxy/share/ament_cmake/cmake)
+[0.041s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[0.135s] -- Found rclcpp: 2.4.3 (/opt/ros/foxy/share/rclcpp/cmake)
+[0.152s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.154s] -- Found rosidl_adapter: 1.3.1 (/opt/ros/foxy/share/rosidl_adapter/cmake)
+[0.214s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.240s] -- Found rmw_implementation_cmake: 1.0.4 (/opt/ros/foxy/share/rmw_implementation_cmake/cmake)
+[0.241s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[0.316s] -- Found rclpy: 1.0.13 (/opt/ros/foxy/share/rclpy/cmake)
+[0.317s] -- Found geometry_msgs: 2.0.5 (/opt/ros/foxy/share/geometry_msgs/cmake)
+[0.334s] -- Found nav_msgs: 2.0.5 (/opt/ros/foxy/share/nav_msgs/cmake)
+[0.373s] -- Found ackermann_msgs: 2.0.2 (/opt/ros/foxy/share/ackermann_msgs/cmake)
+[0.390s] -- Found sensor_msgs: 2.0.5 (/opt/ros/foxy/share/sensor_msgs/cmake)
+[0.428s] -- Found visualization_msgs: 2.0.5 (/opt/ros/foxy/share/visualization_msgs/cmake)
+[0.467s] -- Found tf2_ros: 0.13.14 (/opt/ros/foxy/share/tf2_ros/cmake)
+[0.644s] -- Found ament_lint_auto: 0.9.8 (/opt/ros/foxy/share/ament_lint_auto/cmake)
+[0.678s] -- Added test 'copyright' to check source files copyright and LICENSE
+[0.682s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[0.683s] -- Configured cppcheck include dirs: 
+[0.683s] -- Configured cppcheck exclude dirs and/or files: 
+[0.687s] -- Added test 'cpplint' to check C / C++ code against the Google style
+[0.687s] -- Configured cpplint exclude dirs and/or files: 
+[0.688s] -- Added test 'flake8' to check Python code syntax and style conventions
+[0.689s] -- Added test 'lint_cmake' to check CMake code style
+[0.690s] -- Added test 'pep257' to check Python code against some of the style conventions in PEP 257
+[0.694s] -- Added test 'uncrustify' to check C / C++ code style
+[0.694s] -- Configured uncrustify additional arguments: 
+[0.695s] -- Added test 'xmllint' to check XML markup files
+[0.696s] -- Configuring done
+[0.697s] -- Generating done
+[0.698s] -- Build files have been written to: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg
+[0.713s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
+[0.730s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --install /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg
+[0.736s] -- Install configuration: ""
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/getPixelCoord.py
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/camera.py
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/distance.py
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/f110_yolo_hw_final.py
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/intrinsicMat.py
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/ament_index/resource_index/package_run_dependencies/vision_pkg
+[0.736s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/ament_index/resource_index/parent_prefix_path/vision_pkg
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/ament_prefix_path.sh
+[0.736s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/ament_prefix_path.dsv
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/path.sh
+[0.736s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/environment/path.dsv
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.bash
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.sh
+[0.736s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.zsh
+[0.737s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/local_setup.dsv
+[0.737s] -- Installing: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/package.dsv
+[0.737s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/ament_index/resource_index/packages/vision_pkg
+[0.737s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/cmake/vision_pkgConfig.cmake
+[0.737s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/cmake/vision_pkgConfig-version.cmake
+[0.737s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/share/vision_pkg/package.xml
+[0.737s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --install /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg
