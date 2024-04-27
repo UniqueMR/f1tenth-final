@@ -65,8 +65,11 @@ Executer::Executer()
     // initialize frames and tf buffer and listener
     parent_frame_id = "map";
     child_frame_id = (online) ? "laser" : "ego_racecar/base_link";
-    tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
-    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+    tf_buffer_pp_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+    tf_buffer_rrt_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+
+    tf_listener_pp_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_pp_);
+    tf_listener_rrt_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_rrt_);
 
     // initialize state handler
     pure_pursuit_handler = std::make_unique<purepursuitHandler>(
@@ -89,6 +92,18 @@ Executer::~Executer()
     return;
 }
 
+geometry_msgs::msg::TransformStamped tf_inverse_handler(geometry_msgs::msg::TransformStamped t){
+    tf2::Transform tf2_transform;
+    tf2::fromMsg(t.transform, tf2_transform);
+    tf2::Transform tf2_inverse_transform = tf2_transform.inverse();
+    geometry_msgs::msg::TransformStamped inverseTransformStamped;
+    inverseTransformStamped.header.stamp = t.header.stamp;
+    inverseTransformStamped.header.frame_id = t.child_frame_id;
+    inverseTransformStamped.child_frame_id = t.header.frame_id;
+    inverseTransformStamped.transform = tf2::toMsg(tf2_inverse_transform);
+    return inverseTransformStamped;
+}
+
 void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     pure_pursuit_handler->update_params(
         this->get_parameter("pp_look_ahead_distance").as_double(),
@@ -97,8 +112,9 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
         pose_msg->pose.pose.position.y
     );
 
-    pure_pursuit_handler->get_transform_stamp_W2L(parent_frame_id, child_frame_id, tf_buffer_);
-    rrt_handler->get_transform_stamp_L2W(parent_frame_id, child_frame_id, tf_buffer_);
+    pure_pursuit_handler->get_transform_stamp_W2L(parent_frame_id, child_frame_id, tf_buffer_pp_);
+    // rrt_handler->get_transform_stamp_L2W(parent_frame_id, child_frame_id, tf_buffer_rrt_);
+    rrt_handler->t = tf_inverse_handler(pure_pursuit_handler->t);
 
     switch(curr_state){
         case execState::NORMAL:

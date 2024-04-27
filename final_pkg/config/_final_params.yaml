@@ -1,0 +1,33 @@
+/planner_node:
+  ros__parameters:
+    timer_period: 5.0
+
+/executer_node:
+  ros__parameters:
+    online: true # set the parameter to true while testing on the vehicle
+
+    # pure pursuit params
+    pp_look_ahead_distance: 1.5
+    pp_kp: 0.35
+    pp_high_speed: 6.0 #4.5
+    pp_medium_speed: 5.0 #1.5
+    pp_low_speed: 3.5
+    waypoints_path: "src/final_pkg/path/using.csv"
+
+    # rrt params
+    rrt_look_ahead_dist: 2.0
+    rrt_track_dist: 3.0 #1.5
+    rrt_bubble_offset: 2
+    rrt_iter: 2000
+    rrt_check_pts_num: 10
+    rrt_max_expansion_dist: 1.0
+    rrt_obs_clear_rate: 5
+    rrt_kp: 0.3
+    rrt_high_speed: 1.0 #4.5
+    rrt_medium_speed: 1.0 #1.5
+    rrt_low_speed: 1.0
+    rrt_search_radius: 1.5
+    rrt_hit_dist: 0.1
+    rrt_star_enable: true
+    rrt_ema_enable: true
+    rrt_ema_alpha: 0.5

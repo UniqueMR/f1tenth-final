@@ -55,8 +55,10 @@ private:
     // tf buffer and listener
     std::string parent_frame_id;
     std::string child_frame_id;
-    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-    std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_pp_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_pp_{nullptr};
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_rrt_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_rrt_{nullptr};
     
     // publisher and subscriber
     rclcpp::Subscription<nav_msgs::msg::Odometry>::ConstSharedPtr odom_subscriber_;
