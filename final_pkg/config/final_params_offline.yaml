@@ -43,3 +43,8 @@
     rrt_star_enable: true
     rrt_ema_enable: true
     rrt_ema_alpha: 0.5
+
+/tf_handle_node:
+  ros__parameters:
+    online: false
+  

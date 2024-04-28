@@ -47,8 +47,11 @@ public:
 private:
     bool online;
 
+    // transformation
+    geometry_msgs::msg::TransformStamped w2l_t, l2w_t;
+
     // topics
-    std::string occupancy_grid_topic, pose_topic, scan_topic, state_topic, drive_topic, marker_topic;
+    std::string occupancy_grid_topic, pose_topic, scan_topic, state_topic, drive_topic, marker_topic, w2l_t_topic, l2w_t_topic;
 
     execState curr_state;
 
@@ -64,6 +67,8 @@ private:
     rclcpp::Subscription<nav_msgs::msg::Odometry>::ConstSharedPtr odom_subscriber_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::ConstSharedPtr laser_scan_subscriber_;
     rclcpp::Subscription<std_msgs::msg::String>::ConstSharedPtr state_subscriber_;
+    rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::ConstSharedPtr w2l_t_subscriber_;
+    rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::ConstSharedPtr l2w_t_subscriber_;
 
     rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr drive_publisher_;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr occupancy_grid_publisher_;
@@ -73,6 +78,8 @@ private:
     void pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg);
     void state_callback(const std_msgs::msg::String::ConstSharedPtr state_msg); 
+    void w2l_t_callback(const geometry_msgs::msg::TransformStamped::ConstSharedPtr w2l_t_msg);
+    void l2w_t_callback(const geometry_msgs::msg::TransformStamped::ConstSharedPtr l2w_t_msg);
 
     // state handler
     std::unique_ptr<purepursuitHandler> pure_pursuit_handler;

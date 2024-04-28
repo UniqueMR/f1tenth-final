@@ -42,6 +42,9 @@ Executer::Executer()
     drive_topic = "drive";
     marker_topic = "visualization_marker";
 
+    w2l_t_topic = "tf_w2l";
+    l2w_t_topic = "tf_l2w";
+
     // initialize publisher and subscriber
     odom_subscriber_ = this->create_subscription<nav_msgs::msg::Odometry>(
         pose_topic, 1, std::bind(&Executer::pose_callback, this, std::placeholders::_1)
@@ -51,6 +54,12 @@ Executer::Executer()
     );
     state_subscriber_ = this->create_subscription<std_msgs::msg::String>(
         state_topic, 1, std::bind(&Executer::state_callback, this, std::placeholders::_1)
+    );
+    w2l_t_subscriber_ = this->create_subscription<geometry_msgs::msg::TransformStamped>(
+        w2l_t_topic, 1, std::bind(&Executer::w2l_t_callback, this, std::placeholders::_1)
+    );
+    l2w_t_subscriber_ = this->create_subscription<geometry_msgs::msg::TransformStamped>(
+        l2w_t_topic, 1, std::bind(&Executer::l2w_t_callback, this, std::placeholders::_1)
     );
 
     drive_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(
@@ -112,9 +121,14 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
         pose_msg->pose.pose.position.y
     );
 
-    pure_pursuit_handler->get_transform_stamp_W2L(parent_frame_id, child_frame_id, tf_buffer_pp_);
+    // pure_pursuit_handler->get_transform_stamp_W2L(parent_frame_id, child_frame_id, tf_buffer_pp_);
     // rrt_handler->get_transform_stamp_L2W(parent_frame_id, child_frame_id, tf_buffer_rrt_);
-    rrt_handler->t = tf_inverse_handler(pure_pursuit_handler->t);
+    // rrt_handler->t = tf_inverse_handler(pure_pursuit_handler->t);
+
+    // std::cout << "###################" << std::endl;
+    // std::cout << "current odom: " << std::endl;
+    // std::cout << "position (x, y, z): " << pose_msg->pose.pose.position.x << ", " << pose_msg->pose.pose.position.y << ", " << pose_msg->pose.pose.position.z << std::endl;
+    // std::cout << "orientation (x, y, z, w): " << pose_msg->pose.pose.orientation.x << ", " << pose_msg->pose.pose.orientation.y << ", " << pose_msg->pose.pose.orientation.z << ", " << pose_msg->pose.pose.orientation.w << std::endl;
 
     switch(curr_state){
         case execState::NORMAL:
@@ -141,6 +155,14 @@ void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr s
     );
     rrt_handler->updated_map->header.stamp = this->now();
     occupancy_grid_publisher_->publish(*(rrt_handler->updated_map));
+}
+
+void Executer::w2l_t_callback(const geometry_msgs::msg::TransformStamped::ConstSharedPtr w2l_t_msg){
+    pure_pursuit_handler->t = *w2l_t_msg;
+}
+
+void Executer::l2w_t_callback(const geometry_msgs::msg::TransformStamped::ConstSharedPtr l2w_t_msg){
+    rrt_handler->t = *l2w_t_msg;
 }
 
 void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){

@@ -38,6 +38,17 @@ def generate_launch_description():
         output='screen'
     )
 
+    tf_handle_node = Node(
+        package='final_pkg',
+        executable='tf_handle_node.py',
+        name='tf_handle_node',
+        parameters=[config_path],
+        output='screen'
+    )
+
     return LaunchDescription([
-        planner_node, sim_map_node, executer_node
+        planner_node, executer_node, tf_handle_node
     ])
+    # return LaunchDescription([
+    #     tf_handle_node
+    # ])

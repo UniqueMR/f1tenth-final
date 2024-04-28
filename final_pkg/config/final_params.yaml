@@ -2,41 +2,29 @@
   ros__parameters:
     timer_period: 5.0
 
-/sim_map_node:
-  ros__parameters:
-    online: false # set the parameter to true while testing on the vehicle
-
-    sim_map_path: "src/f1tenth_gym_ros/maps/levine_blocked" #should be changed to particle filter on the vehicle
-    sim_map_img_ext: ".png"
-    sim_num_agents: 1
-
-/get_obs_node:
-  ros__parameters:
-    online: false
-
 /executer_node:
   ros__parameters:
-    online: false # set the parameter to true while testing on the vehicle
+    online: true # set the parameter to true while testing on the vehicle
 
     # pure pursuit params
     pp_look_ahead_distance: 1.5
-    pp_kp: 0.5
-    pp_high_speed: 4.5
-    pp_medium_speed: 2.5
-    pp_low_speed: 1.5
+    pp_kp: 0.35
+    pp_high_speed: 6.0 #4.5
+    pp_medium_speed: 5.0 #1.5
+    pp_low_speed: 3.5
     waypoints_path: "src/final_pkg/path/using.csv"
 
     # rrt params
     rrt_look_ahead_dist: 2.0
-    rrt_track_dist: 1.5
+    rrt_track_dist: 3.0 #1.5
     rrt_bubble_offset: 2
     rrt_iter: 2000
     rrt_check_pts_num: 10
     rrt_max_expansion_dist: 1.0
     rrt_obs_clear_rate: 5
     rrt_kp: 0.3
-    rrt_high_speed: 4.5
-    rrt_medium_speed: 1.5
+    rrt_high_speed: 1.0 #4.5
+    rrt_medium_speed: 1.0 #1.5
     rrt_low_speed: 1.0
     rrt_search_radius: 1.5
     rrt_hit_dist: 0.1

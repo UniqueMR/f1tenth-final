@@ -68,6 +68,11 @@ install(PROGRAMS
 )
 
 install(PROGRAMS
+  scripts/tf_handle_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(PROGRAMS
   scripts/waypoints/waypoint_logger.py
   DESTINATION lib/${PROJECT_NAME}
 )
