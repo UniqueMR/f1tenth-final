@@ -39,5 +39,5 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        planner_node, sim_map_node, executer_node
+        planner_node, executer_node
     ])

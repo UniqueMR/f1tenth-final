@@ -19,8 +19,6 @@ class Planner(Node):
         # if self.curr_state == 'normal':
         #     self.curr_state = 'overtake'
         # elif self.curr_state == 'overtake':
-        #     self.curr_state = 'blocking'
-        # elif self.curr_state == 'blocking':
         #     self.curr_state = 'normal'
         # else:
         #     pass

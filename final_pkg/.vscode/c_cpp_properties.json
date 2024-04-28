@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/opt/ros/humble/include/**",
+        "/home/runlong/sim_ws/src/f1tenth-racing-stack-ICRA22/opponent_predictor/include/**",
+        "/home/runlong/sim_ws/src/final_pkg/include/**",
+        "/home/runlong/sim_ws/src/pure_pursuit/include/**",
+        "/home/runlong/sim_ws/src/safety_node/include/**",
+        "include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-arm64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

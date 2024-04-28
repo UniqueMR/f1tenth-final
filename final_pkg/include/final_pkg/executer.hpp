@@ -26,11 +26,12 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h> // For transforming ROS messages
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <tf2/LinearMath/Quaternion.h>
-
 #include "utils/csv_loader.hpp"
 #include "pure_pursuit/pure_pursuit.hpp"
 #include "rrt/rrt.hpp"
+#include <tf2/utils.h>
 
 enum class execState {
     NORMAL,
@@ -80,6 +81,8 @@ private:
     void pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
     void rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
     void blocking();
+
+    void pack_transformation(geometry_msgs::msg::TransformStamped &t, std::string parent_frame_id, std::string child_frame_id, nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
 
     // params
     double pp_look_ahead_distance;

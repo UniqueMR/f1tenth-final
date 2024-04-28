@@ -9,9 +9,9 @@
     # pure pursuit params
     pp_look_ahead_distance: 1.5
     pp_kp: 0.35
-    pp_high_speed: 6.0 #4.5
-    pp_medium_speed: 5.0 #1.5
-    pp_low_speed: 3.5
+    pp_high_speed: 1.0 #6.0
+    pp_medium_speed: 1.0 #5
+    pp_low_speed: 1.0 #3.5
     waypoints_path: "src/final_pkg/path/using.csv"
 
     # rrt params

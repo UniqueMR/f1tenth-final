@@ -104,6 +104,29 @@ geometry_msgs::msg::TransformStamped tf_inverse_handler(geometry_msgs::msg::Tran
     return inverseTransformStamped;
 }
 
+void Executer::pack_transformation(geometry_msgs::msg::TransformStamped &t, std::string parent_frame_id, std::string child_frame_id, nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
+    t.header.stamp = this->now();
+
+    t.header.frame_id = parent_frame_id;
+    t.child_frame_id = child_frame_id;
+
+    t.transform.translation.x = pose_msg->pose.pose.position.x;
+    t.transform.translation.y = pose_msg->pose.pose.position.y;
+    t.transform.translation.z = 0.0;
+
+    auto quat = pose_msg->pose.pose.orientation;
+
+    // double yaw = std::atan2(2 * (quat.w * quat.z + quat.x * quat.y), 1 - 2 * (quat.y * quat.y + quat.z * quat.z));
+
+
+    tf2::Quaternion _quat;
+    _quat.setRPY(0.0, 0.0, tf2::getYaw(quat));
+    t.transform.rotation.x = _quat.x();
+    t.transform.rotation.y = _quat.y();
+    t.transform.rotation.z = -_quat.z();
+    t.transform.rotation.w = _quat.w();
+}
+
 void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     pure_pursuit_handler->update_params(
         this->get_parameter("pp_look_ahead_distance").as_double(),
@@ -113,8 +136,16 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
     );
 
     pure_pursuit_handler->get_transform_stamp_W2L(parent_frame_id, child_frame_id, tf_buffer_pp_);
-    // rrt_handler->get_transform_stamp_L2W(parent_frame_id, child_frame_id, tf_buffer_rrt_);
-    rrt_handler->t = tf_inverse_handler(pure_pursuit_handler->t);
+    // geometry_msgs::msg::TransformStamped t_custom;
+    // pack_transformation(pure_pursuit_handler->t, parent_frame_id, child_frame_id, pose_msg);
+
+    // std::cout << "listened t: " << pure_pursuit_handler->t.transform.rotation.x << ", " << pure_pursuit_handler->t.transform.rotation.y << ", " << pure_pursuit_handler->t.transform.rotation.z << ", " << pure_pursuit_handler->t.transform.rotation.w << std::endl;
+    // std::cout << "generated t:" << t_custom.transform.rotation.x << ", " << t_custom.transform.rotation.y  << ", " << t_custom.transform.rotation.z << ", " << t_custom.transform.rotation.w << std::endl;
+    rrt_handler->get_transform_stamp_L2W(parent_frame_id, child_frame_id, tf_buffer_rrt_);
+    // rrt_handler->t = tf_inverse_handler(pure_pursuit_handler->t);
+
+    // std::cout << "listened t: " << rrt_handler->t.transform.rotation.x << ", " << rrt_handler->t.transform.rotation.y << ", " << rrt_handler->t.transform.rotation.z << ", " << rrt_handler->t.transform.rotation.w << std::endl;
+    // std::cout << "generated t:" << t_custom.transform.rotation.x << ", " << t_custom.transform.rotation.y  << ", " << t_custom.transform.rotation.z << ", " << t_custom.transform.rotation.w << std::endl;
 
     switch(curr_state){
         case execState::NORMAL:
@@ -218,6 +249,27 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
         }
     }
 
+    if(cnt >=  this->get_parameter("rrt_iter").as_int() || path.empty()){
+        RRT_Node curr_vehicle_world, target;
+
+        curr_vehicle_world.x = pose_msg->pose.pose.position.x;
+        curr_vehicle_world.y = pose_msg->pose.pose.position.y;
+        curr_vehicle_world.cost = 0.0;
+        curr_vehicle_world.parent = -1;
+        curr_vehicle_world.is_root = true;
+
+        target.x = target_pt_world[0];
+        target.y = target_pt_world[1];
+        target.cost = 0.0;
+        target.parent = 0;
+        target.is_root = false;
+
+        path.push_back(curr_vehicle_world);
+        path.push_back(target);
+    }
+
+    if(path.empty())    return;
+
     rrt_handler->ema_enable = this->get_parameter("rrt_ema_enable").as_bool();
     rrt_handler->ema_alpha = this->get_parameter("rrt_ema_alpha").as_double();
     std::vector<RRT_Node> local_path = rrt_handler->get_local_path(path, pure_pursuit_handler->t);
@@ -231,6 +283,7 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     rrt_handler->low_speed = this->get_parameter("rrt_low_speed").as_double();
     rrt_handler->kp = this->get_parameter("rrt_kp").as_double();
     ackermann_msgs::msg::AckermannDriveStamped control = rrt_handler->follow_path(local_path, this->get_parameter("rrt_track_dist").as_double());
+    if(control.drive.speed != control.drive.speed || control.drive.steering_angle != control.drive.steering_angle)   return;
     if(control.drive.speed >= 0.0) drive_publisher_->publish(control);
 }
 
