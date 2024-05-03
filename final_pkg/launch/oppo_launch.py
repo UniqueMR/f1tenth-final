@@ -13,8 +13,8 @@ def generate_launch_description():
 
     oppnent_node = Node(
         package='final_pkg',
-        executable='oppnent_node',
-        name='oppnent_node',
+        executable='opponent_node',
+        name='opponent_node',
         parameters=[config_path],
         output='screen'
     )

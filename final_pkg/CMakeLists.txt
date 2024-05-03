@@ -50,10 +50,7 @@ ament_target_dependencies(opponent_node
 
 # Install Cpp executables
 install(TARGETS
-  executer_node
-  DESTINATION lib/${PROJECT_NAME})
-install(TARGETS
-  opponent_node
+  executer_node opponent_node
   DESTINATION lib/${PROJECT_NAME})
 
 # Install Python modules
