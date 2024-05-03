@@ -38,14 +38,22 @@ include_directories(
 
 # Create Cpp executable
 add_executable(executer_node src/executer_node.cpp src/executer.cpp src/utils/csv_loader.cpp src/blocking/blocking.cpp src/pure_pursuit/pure_pursuit.cpp src/rrt/rrt.cpp src/rrt/math.cpp src/rrt/visualize.cpp)
+add_executable(opponent_node src/executer.cpp src/utils/csv_loader.cpp src/blocking/blocking.cpp src/pure_pursuit/pure_pursuit.cpp src/rrt/rrt.cpp src/rrt/math.cpp src/rrt/visualize.cpp src/opponent_node.cpp src/opponent.cpp)
 
 ament_target_dependencies(executer_node 
+  rclcpp geometry_msgs ackermann_msgs nav_msgs sensor_msgs std_msgs visualization_msgs tf2_ros tf2_geometry_msgs
+)
+
+ament_target_dependencies(opponent_node 
   rclcpp geometry_msgs ackermann_msgs nav_msgs sensor_msgs std_msgs visualization_msgs tf2_ros tf2_geometry_msgs
 )
 
 # Install Cpp executables
 install(TARGETS
   executer_node
+  DESTINATION lib/${PROJECT_NAME})
+install(TARGETS
+  opponent_node
   DESTINATION lib/${PROJECT_NAME})
 
 # Install Python modules

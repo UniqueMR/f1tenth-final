@@ -249,24 +249,8 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
         }
     }
 
-    if(cnt >=  this->get_parameter("rrt_iter").as_int() || path.empty()){
-        RRT_Node curr_vehicle_world, target;
-
-        curr_vehicle_world.x = pose_msg->pose.pose.position.x;
-        curr_vehicle_world.y = pose_msg->pose.pose.position.y;
-        curr_vehicle_world.cost = 0.0;
-        curr_vehicle_world.parent = -1;
-        curr_vehicle_world.is_root = true;
-
-        target.x = target_pt_world[0];
-        target.y = target_pt_world[1];
-        target.cost = 0.0;
-        target.parent = 0;
-        target.is_root = false;
-
-        path.push_back(curr_vehicle_world);
-        path.push_back(target);
-    }
+    if(cnt >= this->get_parameter("rrt_iter").as_int() || path.empty())
+        path = rrt_handler->path_not_found_handle(pose_msg, target_pt_world);
 
     if(path.empty())    return;
 

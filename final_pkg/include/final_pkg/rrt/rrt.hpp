@@ -82,6 +82,7 @@ public:
     void ema_smoothing_local(std::vector<RRT_Node> &path, double alpha);
     std::vector<RRT_Node> get_local_path(std::vector<RRT_Node> path, geometry_msgs::msg::TransformStamped t);
     ackermann_msgs::msg::AckermannDriveStamped follow_path(std::vector<RRT_Node> local_path, double track_dist);
+    std::vector<RRT_Node> path_not_found_handle(nav_msgs::msg::Odometry::ConstSharedPtr pose_msg, std::vector<double> target_pt_world);
     
 private:
     std::unique_ptr<wayPointLoader> dataloader;

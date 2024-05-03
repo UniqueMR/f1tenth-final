@@ -6,8 +6,8 @@
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle
 
-    sim_map_path: "src/f1tenth_gym_ros/maps/levine_blocked" #should be changed to particle filter on the vehicle
-    sim_map_img_ext: ".png"
+    sim_map_path: "src/f1tenth_gym_ros/maps/final_race_clean" #should be changed to particle filter on the vehicle
+    sim_map_img_ext: ".pgm"
     sim_num_agents: 1
 
 /get_obs_node:
@@ -28,18 +28,18 @@
 
     # rrt params
     rrt_look_ahead_dist: 2.0
-    rrt_track_dist: 1.5
+    rrt_track_dist: 0.5
     rrt_bubble_offset: 2
     rrt_iter: 2000
     rrt_check_pts_num: 10
     rrt_max_expansion_dist: 1.0
     rrt_obs_clear_rate: 5
-    rrt_kp: 0.3
-    rrt_high_speed: 4.5
-    rrt_medium_speed: 1.5
-    rrt_low_speed: 1.0
+    rrt_kp: 0.15
+    rrt_high_speed: 6.0
+    rrt_medium_speed: 4.5
+    rrt_low_speed: 2.5
     rrt_search_radius: 1.5
     rrt_hit_dist: 0.1
     rrt_star_enable: true
     rrt_ema_enable: true
-    rrt_ema_alpha: 0.5
+    rrt_ema_alpha: 0.8

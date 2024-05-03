@@ -42,7 +42,7 @@ class getObsNode(Node):
             if np.isnan(self.sim_scan_ranges[i]) or np.isinf(self.sim_scan_ranges[i]):
                 self.sim_scan_ranges[i] = 3.0
 
-            self.obs_scan_ranges[i] = self.real_scan_ranges[i] if abs(self.real_scan_ranges[i] - self.sim_scan_ranges[i]) > 0.2 else 0
+            self.obs_scan_ranges[i] = self.real_scan_ranges[i] if abs(self.real_scan_ranges[i] - self.sim_scan_ranges[i]) > 0.2 else np.inf
 
         self.obs_scan_msg.header.stamp = self.get_clock().now().to_msg()
         self.obs_scan_msg.ranges = self.obs_scan_ranges.tolist()

@@ -358,3 +358,26 @@ ackermann_msgs::msg::AckermannDriveStamped rrtHandler::follow_path(std::vector<R
     control.drive.speed = (steering < 0.1 && steering > -0.1) ? high_speed : ((steering > 0.2 || steering < -0.2) ? low_speed : medium_speed);
     return control;
 }
+
+std::vector<RRT_Node> rrtHandler::path_not_found_handle(nav_msgs::msg::Odometry::ConstSharedPtr pose_msg, std::vector<double> target_pt_world){
+    RRT_Node curr_vehicle_world, target;
+
+    curr_vehicle_world.x = pose_msg->pose.pose.position.x;
+    curr_vehicle_world.y = pose_msg->pose.pose.position.y;
+    curr_vehicle_world.cost = 0.0;
+    curr_vehicle_world.parent = -1;
+    curr_vehicle_world.is_root = true;
+
+    target.x = target_pt_world[0];
+    target.y = target_pt_world[1];
+    target.cost = 0.0;
+    target.parent = 0;
+    target.is_root = false;
+    
+    std::vector<RRT_Node> path;
+
+    path.push_back(curr_vehicle_world);
+    path.push_back(target);
+
+    return path;
+}
