@@ -2,6 +2,8 @@
   ros__parameters:
     timer_period: 5.0
 
+    overtake_trigger_dist_diff: 5.0 
+
 /sim_map_node:
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle
@@ -14,6 +16,10 @@
   ros__parameters:
     online: false
 
+    fov: 60.0
+    obs_threshold: 1.5
+
+
 /executer_node:
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle
@@ -21,19 +27,19 @@
     # pure pursuit params
     pp_look_ahead_distance: 1.5
     pp_kp: 0.5
-    pp_high_speed: 4.5
-    pp_medium_speed: 2.5
-    pp_low_speed: 1.5
+    pp_high_speed: 6.0
+    pp_medium_speed: 4.5
+    pp_low_speed: 2.5
     waypoints_path: "src/final_pkg/path/using.csv"
 
     # rrt params
-    rrt_look_ahead_dist: 2.0
+    rrt_look_ahead_dist: 2.2
     rrt_track_dist: 0.5
     rrt_bubble_offset: 2
     rrt_iter: 2000
     rrt_check_pts_num: 10
     rrt_max_expansion_dist: 1.0
-    rrt_obs_clear_rate: 5
+    rrt_obs_clear_rate: 10
     rrt_kp: 0.15
     rrt_high_speed: 6.0
     rrt_medium_speed: 4.5
@@ -42,7 +48,7 @@
     rrt_hit_dist: 0.1
     rrt_star_enable: true
     rrt_ema_enable: true
-    rrt_ema_alpha: 0.5
+    rrt_ema_alpha: 0.6
 
 /opponent_node:
   ros__parameters:

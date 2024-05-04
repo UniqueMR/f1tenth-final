@@ -10,6 +10,8 @@ class getObsNode(Node):
         super().__init__('get_obs_node')
 
         self.declare_parameter("online", False)
+        self.declare_parameter('fov', 90.0)
+        self.declare_parameter('obs_threshold', 0.2)
         
         # create subscriber and publisher
         real_scan_topic = 'scan'
@@ -32,9 +34,18 @@ class getObsNode(Node):
     def real_scan_callback(self, scan_msg):
         self.real_scan_ranges = scan_msg.ranges
 
-        if len(self.real_scan_ranges) == 0 or len(self.sim_scan_ranges) == 0:
+        if len(self.real_scan_ranges) == 0 or len(self.sim_scan_ranges) == 0 or len(self.real_scan_ranges) != len(self.sim_scan_ranges):
             return
+        
+        fov = self.get_parameter('fov').get_parameter_value().double_value
 
+        try:
+            assert fov <= 270 and fov >= 0, 'fov out of range'
+        except AssertionError as error:
+            print(f'Error: {error}')
+
+        fov_range_lb, fov_range_ub = (540.0 - ((fov / 2.0) / 135.0) * 540.0), (540.0 + ((fov / 2.0) / 135.0) * 540.0)
+ 
         for i in range(len(self.real_scan_ranges)):
             if np.isnan(self.real_scan_ranges[i]) or np.isinf(self.real_scan_ranges[i]):
                 self.real_scan_ranges[i] = 3.0
@@ -42,7 +53,7 @@ class getObsNode(Node):
             if np.isnan(self.sim_scan_ranges[i]) or np.isinf(self.sim_scan_ranges[i]):
                 self.sim_scan_ranges[i] = 3.0
 
-            self.obs_scan_ranges[i] = self.real_scan_ranges[i] if abs(self.real_scan_ranges[i] - self.sim_scan_ranges[i]) > 0.2 else np.inf
+            self.obs_scan_ranges[i] = self.real_scan_ranges[i] if (i > fov_range_lb and i < fov_range_ub and abs(self.real_scan_ranges[i] - self.sim_scan_ranges[i]) > self.get_parameter('obs_threshold').get_parameter_value().double_value) else np.inf
 
         self.obs_scan_msg.header.stamp = self.get_clock().now().to_msg()
         self.obs_scan_msg.ranges = self.obs_scan_ranges.tolist()
