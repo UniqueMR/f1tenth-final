@@ -42,7 +42,7 @@
     rrt_hit_dist: 0.1
     rrt_star_enable: true
     rrt_ema_enable: true
-    rrt_ema_alpha: 0.8
+    rrt_ema_alpha: 0.5
 
 /opponent_node:
   ros__parameters:

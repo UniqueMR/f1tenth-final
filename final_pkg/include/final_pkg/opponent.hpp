@@ -8,6 +8,6 @@ public:
     Opponent();
     virtual ~Opponent();    
 
-private:
-
+protected:
+    void pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg) override;
 };

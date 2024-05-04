@@ -45,7 +45,7 @@ class Executer : public rclcpp::Node {
 public:
     Executer();
     virtual ~Executer();
-private:
+protected:
     bool online;
 
     // topics
@@ -71,7 +71,7 @@ private:
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_publisher_;
 
     //callbacks
-    void pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
+    virtual void pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg);
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg);
     void state_callback(const std_msgs::msg::String::ConstSharedPtr state_msg); 
 
