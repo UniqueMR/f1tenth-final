@@ -34,6 +34,14 @@ Executer::Executer()
     this->declare_parameter<bool>("rrt_ema_enable", true);
     this->declare_parameter<double>("rrt_ema_alpha", 0.2);
 
+    //blocking parameters
+    this->declare_parameter<double>("block_kp", 1.0);
+    this->declare_parameter<double>("block_ki", 0.0);
+    this->declare_parameter<double>("block_kd", 0.0);
+
+    //brake parameters
+    this->declare_parameter<double>("brake_speed", 1.0);
+
     // initialize topic
     occupancy_grid_topic = "dynamic_map";
     pose_topic = (online) ? "pf/pose/odom" : "ego_racecar/odom";
@@ -41,6 +49,7 @@ Executer::Executer()
     state_topic = "strategy";
     drive_topic = "drive";
     marker_topic = "visualization_marker";
+    oppo_position_topic = "oppo_position";
 
     // initialize publisher and subscriber
     odom_subscriber_ = this->create_subscription<nav_msgs::msg::Odometry>(
@@ -51,6 +60,9 @@ Executer::Executer()
     );
     state_subscriber_ = this->create_subscription<std_msgs::msg::String>(
         state_topic, 1, std::bind(&Executer::state_callback, this, std::placeholders::_1)
+    );
+    oppo_position_subscriber_ = this->create_subscription<geometry_msgs::msg::PointStamped>(
+        oppo_position_topic, 1, std::bind(&Executer::oppo_position_callback, this, std::placeholders::_1)
     );
 
     drive_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(
@@ -79,7 +91,9 @@ Executer::Executer()
     rrt_handler = std::make_unique<rrtHandler>(
         this->get_parameter("waypoints_path").as_string().c_str(),
         parent_frame_id.c_str()
-    );   
+    );
+
+    blocking_handler = std:: make_unique<blockingHandler>();
 
     //initialize the current state
     curr_state = execState::NORMAL;
@@ -136,26 +150,27 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
     );
 
     pure_pursuit_handler->get_transform_stamp_W2L(parent_frame_id, child_frame_id, tf_buffer_pp_);
-    // geometry_msgs::msg::TransformStamped t_custom;
-    // pack_transformation(pure_pursuit_handler->t, parent_frame_id, child_frame_id, pose_msg);
 
-    // std::cout << "listened t: " << pure_pursuit_handler->t.transform.rotation.x << ", " << pure_pursuit_handler->t.transform.rotation.y << ", " << pure_pursuit_handler->t.transform.rotation.z << ", " << pure_pursuit_handler->t.transform.rotation.w << std::endl;
-    // std::cout << "generated t:" << t_custom.transform.rotation.x << ", " << t_custom.transform.rotation.y  << ", " << t_custom.transform.rotation.z << ", " << t_custom.transform.rotation.w << std::endl;
     rrt_handler->get_transform_stamp_L2W(parent_frame_id, child_frame_id, tf_buffer_rrt_);
-    // rrt_handler->t = tf_inverse_handler(pure_pursuit_handler->t);
 
-    // std::cout << "listened t: " << rrt_handler->t.transform.rotation.x << ", " << rrt_handler->t.transform.rotation.y << ", " << rrt_handler->t.transform.rotation.z << ", " << rrt_handler->t.transform.rotation.w << std::endl;
-    // std::cout << "generated t:" << t_custom.transform.rotation.x << ", " << t_custom.transform.rotation.y  << ", " << t_custom.transform.rotation.z << ", " << t_custom.transform.rotation.w << std::endl;
+    blocking_handler->update_params(
+        this->get_parameter("block_kp").as_double(),
+        this->get_parameter("block_ki").as_double(),
+        this->get_parameter("block_kd").as_double()
+    );
 
     switch(curr_state){
         case execState::NORMAL:
-            pure_pursuit(pose_msg);
+            pure_pursuit(pose_msg, false);
             break;
         case execState::OVERTAKE:
             rrt(pose_msg);
             break;
         case execState::BLOCKING:
             blocking();
+            break;
+        case execState::BRAKING:
+            pure_pursuit(pose_msg, true);
             break;
         case execState::INVALID:
             RCLCPP_WARN(this->get_logger(), "No strategy found!\n");
@@ -174,7 +189,11 @@ void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr s
     occupancy_grid_publisher_->publish(*(rrt_handler->updated_map));
 }
 
-void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
+void Executer::oppo_position_callback(const geometry_msgs::msg::PointStamped::ConstSharedPtr oppo_position_msg){
+    blocking_handler->track_opponent(oppo_position_msg);
+}
+
+void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg, bool is_brake){
     // RCLCPP_INFO(this->get_logger(), "select pure pursuit strategy...\n");
     // compute the next look ahead point
     pure_pursuit_handler->get_lookahead_pt();
@@ -188,7 +207,11 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
 
     drive_msg.drive.steering_angle = (steeringAngle < -0.349) ? -0.349 : ((steeringAngle > 0.349) ? 0.349 : steeringAngle);
 
-    drive_msg.drive.speed = (drive_msg.drive.steering_angle < 0.1 && drive_msg.drive.steering_angle > -0.1) ? this->get_parameter("pp_high_speed").as_double() : ((drive_msg.drive.steering_angle > 0.2 || drive_msg.drive.steering_angle < -0.2) ? this->get_parameter("pp_low_speed").as_double() : this->get_parameter("pp_medium_speed").as_double());
+    if(is_brake)    drive_msg.drive.speed = this->get_parameter("brake_speed").as_double();
+
+    else    drive_msg.drive.speed = (drive_msg.drive.steering_angle < 0.1 && drive_msg.drive.steering_angle > -0.1) ? this->get_parameter("pp_high_speed").as_double()\
+     : ((drive_msg.drive.steering_angle > 0.2 || drive_msg.drive.steering_angle < -0.2) ? this->get_parameter("pp_low_speed").as_double() :\
+      this->get_parameter("pp_medium_speed").as_double());
 
     drive_publisher_->publish(drive_msg);
 }
@@ -273,6 +296,16 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
 
 void Executer::blocking(){
     RCLCPP_INFO(this->get_logger(), "select blocking strategy...\n");
+    blocking_handler->update_params(
+        this->get_parameter("block_kp").as_double(),
+        this->get_parameter("block_ki").as_double(),
+        this->get_parameter("block_kd").as_double()
+    );
+    blocking_handler->pseudo_error_oscillator();
+
+    ackermann_msgs::msg::AckermannDriveStamped control;
+    blocking_handler->get_pid_control(control);
+    drive_publisher_->publish(control);
 }
 
 void Executer::state_callback(const std_msgs::msg::String::ConstSharedPtr state_msg){
@@ -284,7 +317,8 @@ execState stringToState(const std_msgs::msg::String::ConstSharedPtr str){
     static const std::map<std::string, execState> stateMap = {
         {"normal", execState::NORMAL},
         {"overtake", execState::OVERTAKE},
-        {"blocking", execState::BLOCKING}
+        {"blocking", execState::BLOCKING},
+        {"braking", execState::BRAKING}
     };
     auto it = stateMap.find(str->data.c_str());
     return (it != stateMap.end()) ? it->second : execState::INVALID;

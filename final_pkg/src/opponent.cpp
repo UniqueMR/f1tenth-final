@@ -36,6 +36,6 @@ void Opponent::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
 
     pure_pursuit_handler->get_transform_stamp_W2L(parent_frame_id, child_frame_id, tf_buffer_pp_);
 
-    pure_pursuit(pose_msg);
+    pure_pursuit(pose_msg, false);
 }
 

@@ -3,6 +3,9 @@
     timer_period: 5.0
 
     overtake_trigger_dist_diff: 5.0 
+    overtake_trigger_steering_ang: 1.0
+
+    brake_dist_threshold: 0.2
 
 /sim_map_node:
   ros__parameters:
@@ -50,6 +53,12 @@
     rrt_ema_enable: true
     rrt_ema_alpha: 0.6
 
+    block_kp: 1.0
+    block_ki: 0.0
+    block_kd: 0.0
+
+    brake_speed: 2.0
+
 /opponent_node:
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle
@@ -79,3 +88,7 @@
     rrt_star_enable: true
     rrt_ema_enable: true
     rrt_ema_alpha: 0.8
+
+    block_kp: 1.0
+    block_ki: 0.0
+    block_kd: 0.0
