@@ -14,7 +14,7 @@ class WaypointVisualizer(Node):
 
     def publish_markers(self):
         # Read CSV file
-        with open('src/final_pkg/path/using.csv', 'r') as file:
+        with open('src/final_pkg/path/centerline.csv', 'r') as file:
             csv_reader = csv.reader(file)
             for row in csv_reader:
                 if len(row) >= 2:

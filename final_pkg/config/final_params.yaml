@@ -1,5 +1,6 @@
 /planner_node:
   ros__parameters:
+    online: false
     timer_period: 5.0
 
     overtake_trigger_dist_diff: 5.0 

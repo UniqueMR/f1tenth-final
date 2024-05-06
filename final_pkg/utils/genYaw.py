@@ -10,7 +10,7 @@ class waypoints():
         self.output_path = output_path
         self.num_points = num_points
 
-        self.df = pd.read_csv(self.raw_data_path, sep=';', usecols=[1,2])
+        self.df = pd.read_csv(self.raw_data_path, sep=',', usecols=[0,1])
     
     def create_dense_pts(self):
         # sampling way points
@@ -72,7 +72,7 @@ class waypoints():
         self.create_csv_file()
 
 if __name__ == '__main__':
-    waypoints = waypoints('origin.csv', 'interpolated.csv', sampling_rate=1, num_points=1000)
+    waypoints = waypoints('sampled.csv', 'interpolated.csv', sampling_rate=1, num_points=500)
     waypoints.main()
 
 
