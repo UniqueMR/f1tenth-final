@@ -6,6 +6,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
+from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
 import time
 from numba.np.extensions import cross2d
@@ -21,6 +22,7 @@ class Planner(Node):
         self.declare_parameter('overtake_trigger_steering_ang', 1.5)
         self.declare_parameter('brake_dist_threshold', 0.5)
         self.declare_parameter('online', False)
+        self.declare_parameter('reward_cnt_reset', 200)
         self.online = self.get_parameter('online').get_parameter_value().bool_value
         self.timer_period = self.get_parameter('timer_period').get_parameter_value().double_value
         # self.timer = self.create_timer(self.timer_period, self.timer_callback)
@@ -28,9 +30,11 @@ class Planner(Node):
         obs_scan_topic = 'obs_scan'
         drive_topic = 'drive'
         odom_topic = 'pf/pose/odom' if self.online else 'ego_racecar/odom'
+        reward_topic = 'reward'
         self.obs_scan_subscriber_ = self.create_subscription(LaserScan, obs_scan_topic, self.obs_scan_callback, 10)
         self.drive_subscriber_ = self.create_subscription(AckermannDriveStamped, drive_topic, self.drive_callback, 10)
         self.odom_subscriber_ = self.create_subscription(Odometry, odom_topic, self.odom_callback, 10)
+        self.reward_publisher_ = self.create_publisher(Float64, reward_topic, 10)
 
         self.prev_obs_scan = np.full((1080, ), np.inf)
         self.curr_obs_scan = np.full((1080, ), np.inf)
@@ -45,6 +49,10 @@ class Planner(Node):
         centerline = pd.read_csv('./src/final_pkg/path/centerline.csv', sep=',', usecols=[0,1,3])
         self.traj_x, self.traj_y, self.traj_theta, self.traj_s = np.array(centerline.iloc[:, 0]), np.array(centerline.iloc[:, 1]), np.array(centerline.iloc[:, 2]), []
         self.get_traj_s()
+        self.reward_stamp, self.reward_accum = 0.0, 0.0
+        self.prev_s = 0.0
+        self.prev_idx_next = 0
+        self.reward_cnt = 0
 
     def obs_scan_callback(self, obs_scan_msg):
         self.curr_obs_scan = obs_scan_msg.ranges
@@ -95,9 +103,23 @@ class Planner(Node):
             return
 
     def odom_callback(self, pose_msg):
-        s, d = self.cartesian_to_frenet(pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y)
-        print('s, d: ', s, d)
-    
+        s, _, idx_last, idx_next = self.cartesian_to_frenet(pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y)
+
+        self.reward_stamp = s - self.prev_s if s > self.prev_s else self.traj_s[-1] - self.prev_s + s
+        self.reward_accum += self.reward_stamp
+        self.reward_cnt += 1
+
+        if self.reward_cnt >= self.get_parameter('reward_cnt_reset').get_parameter_value().integer_value:
+            reward_msg = Float64()
+            reward_msg.data = self.reward_accum
+            self.reward_publisher_.publish(reward_msg)
+            self.reward_accum = 0.0
+            self.reward_cnt = 0
+        
+        self.prev_s = s
+        self.prev_idx_next = idx_next
+        return
+
     def drive_callback(self, drive_msg):
         self.speed = drive_msg.drive.speed
         self.steering_ang = drive_msg.drive.steering_angle
@@ -110,7 +132,7 @@ class Planner(Node):
         Returns:
             s, d
         """
-        idx_last, idx_next = self.find_closest_segment(x, y, self.traj_x, self.traj_y, self.traj_theta)
+        idx_last, idx_next = self.find_closest_segment(x, y)
         # Project the point onto the segment for s and d
         segment_vector = np.array([self.traj_x[idx_next] - self.traj_x[idx_last], self.traj_y[idx_next] - self.traj_y[idx_last]])
         point_vector = np.array([x - self.traj_x[idx_last], y - self.traj_y[idx_last]])
@@ -120,19 +142,19 @@ class Planner(Node):
         d = np.cross(segment_vector, point_vector) / np.linalg.norm(segment_vector)
         # d = cross2d(segment_vector, point_vector) / np.linalg.norm(segment_vector)
         s = self.traj_s[idx_last] + proj_length
-        return s, d
+        return s, d, idx_last, idx_next
 
-    def find_closest_segment(self, x, y, traj_x, traj_y, traj_theta):
+    def find_closest_segment(self, x, y):
         """
         Find the closest segment on a trajectory to a given point.
         Assume pass in trajectory has overlapped point(start & end)
         """
         # Cut the overlapped point at the end to avoid edge case
-        n = len(traj_x) - 1
-        distances = np.sqrt((traj_x[:-1] - x) ** 2 + (traj_y[:-1] - y) ** 2)
+        n = len(self.traj_x) - 1
+        distances = np.sqrt((self.traj_x[:-1] - x) ** 2 + (self.traj_y[:-1] - y) ** 2)
         idx_closest = np.argmin(distances)
-        head_vector = np.array([np.cos(traj_theta[idx_closest]), np.sin(traj_theta[idx_closest])])
-        point_vector = np.array([x - traj_x[idx_closest], y - traj_y[idx_closest]])
+        head_vector = np.array([np.cos(self.traj_theta[idx_closest]), np.sin(self.traj_theta[idx_closest])])
+        point_vector = np.array([x - self.traj_x[idx_closest], y - self.traj_y[idx_closest]])
         dot_head_point = np.dot(head_vector, point_vector)
         if dot_head_point >= 0:
             idx_last = idx_closest

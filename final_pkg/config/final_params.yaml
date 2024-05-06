@@ -8,6 +8,8 @@
 
     brake_dist_threshold: 0.2
 
+    reward_cnt_reset: 500
+
 /sim_map_node:
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle
@@ -43,13 +45,13 @@
     rrt_iter: 2000
     rrt_check_pts_num: 10
     rrt_max_expansion_dist: 1.0
-    rrt_obs_clear_rate: 10
+    rrt_obs_clear_rate: 20
     rrt_kp: 0.15
     rrt_high_speed: 6.0
     rrt_medium_speed: 4.5
     rrt_low_speed: 2.5
     rrt_search_radius: 1.5
-    rrt_hit_dist: 0.1
+    rrt_hit_dist: 0.2
     rrt_star_enable: true
     rrt_ema_enable: true
     rrt_ema_alpha: 0.6
