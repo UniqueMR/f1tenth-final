@@ -26,6 +26,9 @@ class simMap(Node):
         # create transformation
         self.parent_frame_id = 'map'
         self.child_frame_id = 'laser' if self.get_parameter('online').get_parameter_value().bool_value else 'ego_racecar/base_link'
+        print(".................")
+        print(self.child_frame_id)
+        print(".................")
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 

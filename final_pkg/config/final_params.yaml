@@ -3,7 +3,7 @@
     online: false
     timer_period: 5.0
 
-    overtake_trigger_dist_diff: 5.0 
+    overtake_trigger_dist_diff: 10.0 
     overtake_trigger_steering_ang: 1.0
 
     brake_dist_threshold: 0.2
@@ -14,7 +14,7 @@
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle
 
-    sim_map_path: "src/f1tenth_gym_ros/maps/final_race_clean" #should be changed to particle filter on the vehicle
+    sim_map_path: "src/f1tenth_gym_ros/maps/levine_2D_cleaned" #should be changed to particle filter on the vehicle
     sim_map_img_ext: ".pgm"
     sim_num_agents: 1
 
@@ -33,22 +33,22 @@
     # pure pursuit params
     pp_look_ahead_distance: 1.5
     pp_kp: 0.5
-    pp_high_speed: 6.0
-    pp_medium_speed: 4.5
-    pp_low_speed: 2.5
+    pp_high_speed: 3.5
+    pp_medium_speed: 2.5
+    pp_low_speed: 1.5
     waypoints_path: "src/final_pkg/path/using.csv"
 
     # rrt params
-    rrt_look_ahead_dist: 2.2
+    rrt_look_ahead_dist: 2.0
     rrt_track_dist: 0.5
     rrt_bubble_offset: 2
     rrt_iter: 2000
     rrt_check_pts_num: 10
     rrt_max_expansion_dist: 1.0
     rrt_obs_clear_rate: 20
-    rrt_kp: 0.15
-    rrt_high_speed: 6.0
-    rrt_medium_speed: 4.5
+    rrt_kp: 0.10
+    rrt_high_speed: 4.5
+    rrt_medium_speed: 3.5
     rrt_low_speed: 2.5
     rrt_search_radius: 1.5
     rrt_hit_dist: 0.2
@@ -68,10 +68,10 @@
 
     # pure pursuit params
     pp_look_ahead_distance: 1.5
-    pp_kp: 0.5
-    pp_high_speed: 4.5
-    pp_medium_speed: 2.5
-    pp_low_speed: 1.5
+    pp_kp: 0.25
+    pp_high_speed: 2.5
+    pp_medium_speed: 1.5
+    pp_low_speed: 1.0
     waypoints_path: "src/final_pkg/path/using.csv"
 
     # rrt params
