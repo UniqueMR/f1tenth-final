@@ -19,14 +19,6 @@ def generate_launch_description():
         output='screen'
     )
 
-    get_obs_node = Node(
-        package='final_pkg',
-        executable='get_obs_node.py',
-        name='get_obs_node',
-        parameters=[config_path],
-        output='screen'
-    )
-
     return LaunchDescription([
-        sim_map_node, get_obs_node
+        sim_map_node
     ])

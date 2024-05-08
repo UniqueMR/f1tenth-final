@@ -18,6 +18,9 @@
     sim_map_img_ext: ".pgm"
     sim_num_agents: 1
 
+    fov: 60.0
+    obs_threshold: 0.5
+
 /get_obs_node:
   ros__parameters:
     online: false
