@@ -18,7 +18,7 @@ class Planner(Node):
         super().__init__('planner')
         self.state_publisher_ = self.create_publisher(String, 'strategy', 10)
         self.declare_parameter("timer_period", 20.0)
-        self.declare_parameter('overtake_trigger_dist_diff', 3.0)
+        self.declare_parameter('overtake_trigger_ittc', 3.0)
         self.declare_parameter('overtake_trigger_steering_ang', 1.5)
         self.declare_parameter('brake_dist_threshold', 0.5)
         self.declare_parameter('online', False)
@@ -38,7 +38,9 @@ class Planner(Node):
 
         self.prev_obs_scan = np.full((1080, ), np.inf)
         self.curr_obs_scan = np.full((1080, ), np.inf)
-        self.ttc_arr = [np.inf for _ in range(1080)]
+        self.dist_diff_arr = [np.inf for _ in range(1080)]
+        self.ittc_arr = [np.inf for _ in range(1080)]
+        self.min_ittc = np.inf
 
         self.curr_state = 'normal'
         self.overtake_time = 0.0
@@ -56,11 +58,14 @@ class Planner(Node):
 
     def obs_scan_callback(self, obs_scan_msg):
         self.curr_obs_scan = obs_scan_msg.ranges
-        self.ttc_arr = [self.curr_obs_scan[i] - self.prev_obs_scan[i] if self.curr_obs_scan[i] != np.inf and self.prev_obs_scan[i] != np.inf else np.inf for i in range(1080)]
-        self.ttc_arr = [np.abs(self.ttc_arr[i]) if self.ttc_arr[i] < 0 else 0 for i in range(1080)]
-        self.max_dist_diff = max(self.ttc_arr)
+        self.dist_diff_arr = [self.curr_obs_scan[i] - self.prev_obs_scan[i] if self.curr_obs_scan[i] != np.inf and self.prev_obs_scan[i] != np.inf else np.inf for i in range(1080)]
+        self.dist_diff_arr = [np.abs(self.dist_diff_arr[i]) if self.dist_diff_arr[i] < 0 else 0 for i in range(1080)]
+        self.ittc_arr = [self.curr_obs_scan[i] / self.dist_diff_arr[i] if self.dist_diff_arr[i] != 0 else np.inf for i in range(1080)]
+        
         self.prev_obs_scan = self.curr_obs_scan
         # print('max dist diff: ', self.max_dist_diff)
+
+        print(min(self.ittc_arr))
 
         # braking transition
         if min(self.curr_obs_scan) < self.get_parameter('brake_dist_threshold').get_parameter_value().double_value and self.curr_state == 'normal':
@@ -84,7 +89,7 @@ class Planner(Node):
         # overtake transition
         # if self.max_dist_diff > self.get_parameter('overtake_trigger_dist_diff').get_parameter_value().double_value\
         #     and self.steering_ang < self.get_parameter('overtake_trigger_steering_ang').get_parameter_value().double_value  and self.curr_state != 'overtake': 
-        if self.max_dist_diff > self.get_parameter('overtake_trigger_dist_diff').get_parameter_value().double_value and self.curr_state != 'overtake': 
+        if min(self.ittc_arr) < self.get_parameter('overtake_trigger_ittc').get_parameter_value().double_value and self.curr_state != 'overtake': 
             self.curr_state = 'overtake'
             self.overtake_time = time.time()
 

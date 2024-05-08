@@ -3,7 +3,7 @@
     online: false
     timer_period: 5.0
 
-    overtake_trigger_dist_diff: 10.0 
+    overtake_trigger_ittc: 0.5
     overtake_trigger_steering_ang: 1.0
 
     brake_dist_threshold: 0.2
