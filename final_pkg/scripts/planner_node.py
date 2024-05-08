@@ -65,8 +65,6 @@ class Planner(Node):
         self.prev_obs_scan = self.curr_obs_scan
         # print('max dist diff: ', self.max_dist_diff)
 
-        print(min(self.ittc_arr))
-
         # braking transition
         if min(self.curr_obs_scan) < self.get_parameter('brake_dist_threshold').get_parameter_value().double_value and self.curr_state == 'normal':
             self.curr_state = 'braking'
