@@ -22,7 +22,7 @@ class Planner(Node):
         self.declare_parameter('overtake_trigger_steering_ang', 1.5)
         self.declare_parameter('brake_dist_threshold', 0.5)
         self.declare_parameter('online', False)
-        self.declare_parameter('reward_cnt_reset', 200)
+        self.declare_parameter('reward_time_reset', 200)
         self.online = self.get_parameter('online').get_parameter_value().bool_value
         self.timer_period = self.get_parameter('timer_period').get_parameter_value().double_value
         # self.timer = self.create_timer(self.timer_period, self.timer_callback)
@@ -54,7 +54,7 @@ class Planner(Node):
         self.reward_stamp, self.reward_accum = 0.0, 0.0
         self.prev_s = 0.0
         self.prev_idx_next = 0
-        self.reward_cnt = 0
+        self.reward_time = 0
 
     def obs_scan_callback(self, obs_scan_msg):
         self.curr_obs_scan = obs_scan_msg.ranges
@@ -76,7 +76,7 @@ class Planner(Node):
             return
 
         # braking transition back
-        if time.time() - self.braking_time >= 3.0 and self.curr_state == 'braking':
+        if time.time() - self.braking_time >= 6.0 and self.curr_state == 'braking':
             self.curr_state = 'normal'
 
             state_msg = String()
@@ -110,14 +110,13 @@ class Planner(Node):
 
         self.reward_stamp = s - self.prev_s if s > self.prev_s else self.traj_s[-1] - self.prev_s + s
         self.reward_accum += self.reward_stamp
-        self.reward_cnt += 1
 
-        if self.reward_cnt >= self.get_parameter('reward_cnt_reset').get_parameter_value().integer_value:
+        if time.time() - self.reward_time >= self.get_parameter('reward_time_reset').get_parameter_value().integer_value:
             reward_msg = Float64()
             reward_msg.data = self.reward_accum
             self.reward_publisher_.publish(reward_msg)
             self.reward_accum = 0.0
-            self.reward_cnt = 0
+            self.reward_time = time.time()
         
         self.prev_s = s
         self.prev_idx_next = idx_next
@@ -181,7 +180,7 @@ class Planner(Node):
         return
 
     # def timer_callback(self):
-    #     self.curr_state = 'blocking'
+    #     self.curr_state = 'overtake'
         
     #     state_msg = String()
     #     state_msg.data = self.curr_state
