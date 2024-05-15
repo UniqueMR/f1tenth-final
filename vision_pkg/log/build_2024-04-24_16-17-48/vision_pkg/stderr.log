@@ -1,0 +1,6 @@
+CMake Error at cmake_install.cmake:41 (file):
+  file INSTALL cannot find
+  "/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/scripts/get_pose_from_pixel.py":
+  No such file or directory.
+
+

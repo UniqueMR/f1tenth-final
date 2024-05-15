@@ -1,0 +1,16 @@
+[0.007s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
+[0.030s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
+[0.069s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --install /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg
+[0.079s] -- Install configuration: ""
+[0.079s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/getPixelCoord.py
+[0.079s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/camera.py
+[0.079s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/distance.py
+[0.079s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/f110_yolo_hw_final.py
+[0.080s] -- Up-to-date: /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/install/vision_pkg/lib/vision_pkg/intrinsicMat.py
+[0.080s] CMake Error at cmake_install.cmake:41 (file):
+[0.080s]   file INSTALL cannot find
+[0.081s]   "/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/scripts/get_pose_from_pixel.py":
+[0.081s]   No such file or directory.
+[0.081s] 
+[0.081s] 
+[0.081s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --install /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg

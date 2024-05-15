@@ -1,0 +1,9 @@
+[0.007s] Invoking command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
+[0.017s] CMake Error at CMakeLists.txt:32:
+[0.017s]   Parse error.  Function missing ending ")".  End of file reached.
+[0.017s] 
+[0.017s] 
+[0.017s] -- Configuring incomplete, errors occurred!
+[0.017s] See also "/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg/CMakeFiles/CMakeOutput.log".
+[0.017s] make: *** [Makefile:222: cmake_check_build_system] Error 1
+[0.018s] Invoked command in '/home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg' returned '2': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake --build /home/tanaya/lab-7-vision-lab-team-10/vision_pkg/build/vision_pkg -- -j20 -l20
