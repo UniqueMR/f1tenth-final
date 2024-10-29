@@ -218,7 +218,7 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
 
 void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     // RCLCPP_INFO(this->get_logger(), "select rrt strategy...\n");
-    launch_hello_world_kernel();
+    // launch_hello_world_kernel();
 
     if(rrt_handler->clear_state)    return;
 
@@ -253,6 +253,21 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
             std::vector<int> neighbor_indices = rrt_handler->near(new_node, this->get_parameter("rrt_search_radius").as_double());
             std::vector<bool> neighbor_collided;
             int best_neighbor_idx = rrt_handler->link_best_neighbor(new_node, neighbor_indices, neighbor_collided, this->get_parameter("rrt_check_pts_num").as_int());
+            // double origin_x = rrt_handler->updated_map->info.origin.position.x;
+            // double origin_y = rrt_handler->updated_map->info.origin.position.y;
+            // double resolution = rrt_handler->updated_map->info.resolution;
+            // int width = rrt_handler->updated_map->info.width;
+
+            // int map_size = rrt_handler->updated_map->data.size();
+
+            // // Convert std::vector<int8_t> to a plain int array for CUDA
+            // int *map_data_host = new int[map_size];
+            // for (int i = 0; i < map_size; ++i) {
+            //     map_data_host[i] = static_cast<int>(rrt_handler->updated_map->data[i]);
+            // }
+
+            // if(check_collision_cuda(rrt_handler->tree[new_node.parent].x, rrt_handler->tree[new_node.parent].y, new_node.x, new_node.y, this->get_parameter("rrt_check_pts_num").as_int(), origin_x, origin_y, resolution, width, map_data_host))
+            //     continue;
             if(rrt_handler->check_collision(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int()))
                 continue;
             if(best_neighbor_idx != -1)
