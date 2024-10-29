@@ -94,3 +94,5 @@ protected:
     double pp_look_ahead_distance;
     double pp_kp;
 };
+
+extern "C" void launch_hello_world_kernel();

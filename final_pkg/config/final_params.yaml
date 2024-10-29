@@ -14,7 +14,7 @@
   ros__parameters:
     online: false # set the parameter to true while testing on the vehicle
 
-    sim_map_path: "src/f1tenth_gym_ros/maps/levine_2D_cleaned" #should be changed to particle filter on the vehicle
+    sim_map_path: "src/f1tenth_gym_ros/maps/final_race_clean" #should be changed to particle filter on the vehicle
     sim_map_img_ext: ".pgm"
     sim_num_agents: 1
 

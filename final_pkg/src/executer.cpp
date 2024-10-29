@@ -218,7 +218,8 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
 
 void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     // RCLCPP_INFO(this->get_logger(), "select rrt strategy...\n");
-    
+    launch_hello_world_kernel();
+
     if(rrt_handler->clear_state)    return;
 
     rrt_handler->init_tree(pose_msg);
@@ -229,6 +230,7 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
     marker_publisher_->publish(rrt_handler->visualized_target);
 
     std::vector<RRT_Node> path; 
+
     RRT_Node node_tracker;
 
     int cnt;

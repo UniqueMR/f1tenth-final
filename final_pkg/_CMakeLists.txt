@@ -6,12 +6,6 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
-# Enable CUDA language
-enable_language(CUDA)
-
-# Check for the availability of CUDA
-find_package(CUDA REQUIRED)
-
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -42,33 +36,22 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
-# Create Cpp executable with CUDA code
-add_executable(executer_node 
-  src/executer_node.cpp 
-  src/executer.cpp 
-  src/utils/csv_loader.cpp 
-  src/blocking/blocking.cpp 
-  src/pure_pursuit/pure_pursuit.cpp 
-  src/rrt/rrt.cpp 
-  src/rrt/math.cpp 
-  src/rrt/visualize.cpp 
-  src/cuda/cuda.cu  # Add CUDA file
-)
+# Create Cpp executable
+add_executable(executer_node src/executer_node.cpp src/executer.cpp src/utils/csv_loader.cpp src/blocking/blocking.cpp src/pure_pursuit/pure_pursuit.cpp src/rrt/rrt.cpp src/rrt/math.cpp src/rrt/visualize.cpp)
+add_executable(opponent_node src/executer.cpp src/utils/csv_loader.cpp src/blocking/blocking.cpp src/pure_pursuit/pure_pursuit.cpp src/rrt/rrt.cpp src/rrt/math.cpp src/rrt/visualize.cpp src/opponent_node.cpp src/opponent.cpp)
 
 ament_target_dependencies(executer_node 
   rclcpp geometry_msgs ackermann_msgs nav_msgs sensor_msgs std_msgs visualization_msgs tf2_ros tf2_geometry_msgs
 )
 
-# Link CUDA libraries
-target_link_libraries(executer_node 
-  ${CUDA_LIBRARIES}
+ament_target_dependencies(opponent_node 
+  rclcpp geometry_msgs ackermann_msgs nav_msgs sensor_msgs std_msgs visualization_msgs tf2_ros tf2_geometry_msgs
 )
 
 # Install Cpp executables
 install(TARGETS
-  executer_node
-  DESTINATION lib/${PROJECT_NAME}
-)
+  executer_node opponent_node
+  DESTINATION lib/${PROJECT_NAME})
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
@@ -111,11 +94,15 @@ install(DIRECTORY launch/
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # Uncomment the following line to skip copyright checks
-  # set(ament_cmake_copyright_FOUND TRUE)
-  # Uncomment the following line to skip cpplint
-  # set(ament_cmake_cpplint_FOUND TRUE)
+  # the following line skips the linter which checks for copyrights
+  # uncomment the line when a copyright and license is not present in all source files
+  #set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # uncomment the line when this package is not in a git repo
+  #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+
 
 ament_package()
