@@ -1,6 +1,13 @@
 // my_cuda_code.cu
 #include <cuda_runtime.h>
 #include <cstdio>
+#include "rrt/rrt.hpp"
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+
+
+#define ROUND_UP_TO_NEAREST(M, N) (((M) + (N)-1) / (N))
 
 // Simple kernel that prints "Hello, World!" from the device
 __global__ void hello_world_kernel() {
@@ -79,3 +86,102 @@ extern "C" bool check_collision_cuda(double pta_x, double pta_y, double ptb_x, d
 
     return h_collision_flag;
 }
+
+const uint ranges_sz = 1080;
+const uint updated_map_width = 759;
+const uint updated_map_height = 844;
+const double updated_map_resolution = 0.1;
+const double updated_map_origin_x = -27.7;
+const double updated_map_origin_y = -12.4;
+const double scan_ang_min = -2.35;
+const double scan_ang_increment = 0.00435185;
+
+__global__ void update_occupancy_grid_kernel(float* ranges_arr, uint8_t* updated_map_arr, float t_mat[4][4], double look_ahead_dist, int bubble_offset){
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    if(idx < ranges_sz){
+        double curr_dist = ranges_arr[idx];
+        double curr_ang = scan_ang_min + idx * scan_ang_increment;
+
+        if(!isnan(curr_dist) && !isinf(curr_dist)){
+            double curr_x = curr_dist * cosf(curr_ang);
+            double curr_y = curr_dist * sinf(curr_ang);
+
+            if(curr_x < look_ahead_dist && curr_y < look_ahead_dist){
+                double curr_global_x = t_mat[0][0] * curr_x + t_mat[0][1] * curr_y + t_mat[0][3];
+                double curr_global_y = t_mat[1][0] * curr_x + t_mat[1][1] * curr_y + t_mat[1][3];
+
+                int base_idx_x = static_cast<int>((curr_global_x - updated_map_origin_x) / updated_map_resolution);
+                int base_idx_y = static_cast<int>((curr_global_y - updated_map_origin_y) / updated_map_resolution);
+
+                for(int i = base_idx_x - bubble_offset; i < base_idx_x + bubble_offset; i++)
+                    for(int j = base_idx_y - bubble_offset; j < base_idx_y + bubble_offset; j++)\
+                        if(i * updated_map_width + j > 0 && i * updated_map_width + j < updated_map_width * updated_map_height)
+                            updated_map_arr[i * updated_map_width + j] = 100;
+                    
+            }
+        }
+    }
+        
+}
+
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+
+void transformStampedToInverseMatrix(geometry_msgs::msg::TransformStamped& transform, float inverse_matrix[4][4]) {
+    // Extract translation
+    const auto& t = transform.transform.translation;
+    tf2::Quaternion q(
+        transform.transform.rotation.x,
+        transform.transform.rotation.y,
+        transform.transform.rotation.z,
+        transform.transform.rotation.w
+    );
+    tf2::Matrix3x3 m(q);
+
+    // Rotation part of the inverse matrix (transpose of rotation matrix)
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            inverse_matrix[i][j] = static_cast<float>(m[j][i]);  // Transpose the rotation part
+        }
+    }
+
+    // Translation part of the inverse matrix
+    inverse_matrix[0][3] = -(inverse_matrix[0][0] * t.x + inverse_matrix[0][1] * t.y + inverse_matrix[0][2] * t.z);
+    inverse_matrix[1][3] = -(inverse_matrix[1][0] * t.x + inverse_matrix[1][1] * t.y + inverse_matrix[1][2] * t.z);
+    inverse_matrix[2][3] = -(inverse_matrix[2][0] * t.x + inverse_matrix[2][1] * t.y + inverse_matrix[2][2] * t.z);
+    inverse_matrix[3][0] = 0.0f;
+    inverse_matrix[3][1] = 0.0f;
+    inverse_matrix[3][2] = 0.0f;
+    inverse_matrix[3][3] = 1.0f;
+}
+
+
+extern "C" void update_occupancy_grid_cuda(
+    const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg,
+    std::shared_ptr<nav_msgs::msg::OccupancyGrid> updated_map,
+    geometry_msgs::msg::TransformStamped& transform,
+    double look_ahead_dist, int bubble_offset
+){
+    float* ranges_arr;
+    uint8_t* updated_map_arr;
+    cudaMalloc(&ranges_arr, ranges_sz * sizeof(float));
+    cudaMalloc(&updated_map_arr, updated_map_height * updated_map_width);
+
+    cudaMemcpy(ranges_arr, scan_msg->ranges.data(), ranges_sz * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemset(updated_map_arr, 0, updated_map_height * updated_map_width * sizeof(uint8_t)); 
+    
+    dim3 gridDim(ROUND_UP_TO_NEAREST(ranges_sz, 256));
+    dim3 blockDim(256);
+
+    float t_mat[4][4];
+    transformStampedToInverseMatrix(transform, t_mat);
+
+    update_occupancy_grid_kernel<<<gridDim, blockDim>>>(ranges_arr, updated_map_arr, t_mat, look_ahead_dist, bubble_offset);
+
+    cudaMemcpy(updated_map->data.data(), updated_map_arr, updated_map_width * updated_map_height * sizeof(uint8_t), cudaMemcpyDeviceToHost);
+    
+}
+
+

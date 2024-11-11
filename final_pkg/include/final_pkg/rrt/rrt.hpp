@@ -94,5 +94,4 @@ private:
     std::mt19937 gen;
     std::uniform_real_distribution<> x_dist;
     std::uniform_real_distribution<> y_dist;
-
 };

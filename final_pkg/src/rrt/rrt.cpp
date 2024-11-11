@@ -79,6 +79,7 @@ void rrtHandler::update_occupancy_grid(
             }
         }
     }
+
     clear_state = false;   
 
     clear_obs_cnt++;

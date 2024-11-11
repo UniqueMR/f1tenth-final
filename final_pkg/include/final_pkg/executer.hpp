@@ -99,3 +99,9 @@ extern "C" void launch_hello_world_kernel();
 extern "C" bool check_collision_cuda(double pta_x, double pta_y, double ptb_x, double ptb_y, 
                                  int check_pts_num, double origin_x, double origin_y, 
                                  double resolution, int width, int *map_data);
+extern "C" void update_occupancy_grid_cuda(
+    const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg,
+    std::shared_ptr<nav_msgs::msg::OccupancyGrid> updated_map,
+    geometry_msgs::msg::TransformStamped& transform,
+    double look_ahead_dist, int bubble_offset
+);

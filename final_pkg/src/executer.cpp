@@ -179,12 +179,18 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
 }
 
 void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg){
-    rrt_handler->update_occupancy_grid(
+    // rrt_handler->update_occupancy_grid(
+    //     scan_msg,
+    //     this->get_parameter("rrt_look_ahead_dist").as_double(),
+    //     this->get_parameter("rrt_bubble_offset").as_int(),
+    //     this->get_parameter("rrt_obs_clear_rate").as_int()
+    // );
+    update_occupancy_grid_cuda(        
         scan_msg,
+        rrt_handler->updated_map,
+        rrt_handler->t,
         this->get_parameter("rrt_look_ahead_dist").as_double(),
-        this->get_parameter("rrt_bubble_offset").as_int(),
-        this->get_parameter("rrt_obs_clear_rate").as_int()
-    );
+        this->get_parameter("rrt_bubble_offset").as_int());
     rrt_handler->updated_map->header.stamp = this->now();
     occupancy_grid_publisher_->publish(*(rrt_handler->updated_map));
 }
