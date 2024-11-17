@@ -12,39 +12,47 @@ double rrtHandler::line_cost(RRT_Node &n1, RRT_Node &n2){
     return std::sqrt(std::pow(n1.x - n2.x, 2) + std::pow(n1.y - n2.y, 2));
 }
 
-void transformStampedToInverseMatrix(geometry_msgs::msg::TransformStamped& transform, float inverse_matrix[4][4]) {
+void transformStampedToMatrix(const geometry_msgs::msg::TransformStamped &transform, float matrix[16]) {
     // Extract translation
-    const auto& t = transform.transform.translation;
+    const auto &t = transform.transform.translation;
+
+    // Extract rotation as quaternion
     tf2::Quaternion q(
         transform.transform.rotation.x,
         transform.transform.rotation.y,
         transform.transform.rotation.z,
         transform.transform.rotation.w
     );
+
+    // Convert quaternion to rotation matrix
     tf2::Matrix3x3 m(q);
 
-    // Rotation part of the inverse matrix (transpose of rotation matrix)
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            inverse_matrix[i][j] = static_cast<float>(m[j][i]);  // Transpose the rotation part
+    // Populate the forward transformation matrix
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            matrix[i*4+j] = static_cast<float>(m[i][j]);
         }
     }
 
-    // Translation part of the inverse matrix
-    inverse_matrix[0][3] = -(inverse_matrix[0][0] * t.x + inverse_matrix[0][1] * t.y + inverse_matrix[0][2] * t.z);
-    inverse_matrix[1][3] = -(inverse_matrix[1][0] * t.x + inverse_matrix[1][1] * t.y + inverse_matrix[1][2] * t.z);
-    inverse_matrix[2][3] = -(inverse_matrix[2][0] * t.x + inverse_matrix[2][1] * t.y + inverse_matrix[2][2] * t.z);
-    inverse_matrix[3][0] = 0.0f;
-    inverse_matrix[3][1] = 0.0f;
-    inverse_matrix[3][2] = 0.0f;
-    inverse_matrix[3][3] = 1.0f;
+    // Set the translation part
+    matrix[3] = static_cast<float>(t.x);
+    matrix[7] = static_cast<float>(t.y);
+    matrix[11] = static_cast<float>(t.z);
+
+    // Set the bottom row of the homogeneous matrix
+    matrix[12] = 0.0f;
+    matrix[13] = 0.0f;
+    matrix[14] = 0.0f;
+    matrix[15] = 1.0f;
 }
 
-void tb_cuda_local_to_world(double curr_local_x, double curr_local_y, double &curr_global_x, double &curr_global_y, geometry_msgs::msg::TransformStamped& transform){
-    float t_mat[4][4];
+void tb_cuda_local_to_world(double curr_local_x, double curr_local_y, double &curr_global_x, double &curr_global_y, const geometry_msgs::msg::TransformStamped &transform) {
+    float t_mat[16];
 
-    transformStampedToInverseMatrix(transform, t_mat);
+    // Generate the forward transformation matrix
+    transformStampedToMatrix(transform, t_mat);
 
-    curr_global_x = t_mat[0][0] * curr_local_x + t_mat[0][1] * curr_local_y + t_mat[0][3];
-    curr_global_y = t_mat[1][0] * curr_local_x + t_mat[1][1] * curr_local_y + t_mat[1][3];
+    // Apply the transformation
+    curr_global_x = t_mat[0] * curr_local_x + t_mat[1] * curr_local_y + t_mat[3];
+    curr_global_y = t_mat[4] * curr_local_x + t_mat[5] * curr_local_y + t_mat[7];
 }

@@ -2,9 +2,9 @@
 
 rrtHandler::rrtHandler(std::string waypoints_path, std::string parent_frame_id){
     updated_map = std::make_shared<nav_msgs::msg::OccupancyGrid>();
+    updated_map_cuda = std::make_shared<nav_msgs::msg::OccupancyGrid>();
     dataloader = std::make_unique<wayPointLoader>(waypoints_path.c_str());
     way_points = dataloader->way_points;
-    updated_map = std::make_shared<nav_msgs::msg::OccupancyGrid>();
     init_map_header(parent_frame_id);
     init_marker(parent_frame_id);
     new_obs = {};
@@ -96,27 +96,27 @@ void rrtHandler::update_occupancy_grid(
         std::cout << "beam transformation failed" << std::endl;
         }
 
-        double curr_beam_world_cuda_x, curr_beam_world_cuda_y; 
-        tb_cuda_local_to_world(curr_x, curr_y, curr_beam_world_cuda_x, curr_beam_world_cuda_y, t);
+        // double curr_beam_world_cuda_x, curr_beam_world_cuda_y; 
+        // tb_cuda_local_to_world(curr_x, curr_y, curr_beam_world_cuda_x, curr_beam_world_cuda_y, t);
 
-        logfile << curr_beam_local.point.x << ", " << curr_beam_local.point.y << ", " 
-        << curr_beam_world.point.x << ", " << curr_beam_world.point.y << ", " 
-            << curr_beam_world_cuda_x << ", " << curr_beam_world_cuda_y << std::endl; 
+        // logfile << curr_beam_local.point.x << ", " << curr_beam_local.point.y << ", " 
+        // << curr_beam_world.point.x << ", " << curr_beam_world.point.y << ", " 
+        //     << curr_beam_world_cuda_x << ", " << curr_beam_world_cuda_y << std::endl; 
 
-        logfile_lines++;
+        // logfile_lines++;
 
-        if(logfile_lines == 100) logfile.close();
+        // if(logfile_lines == 100) logfile.close();
 
-        if(t_init){
-            prev_t = t;
-            t_init = false;
-        }
+        // if(t_init){
+        //     prev_t = t;
+        //     t_init = false;
+        // }
 
-        if(areTransformsDifferent(t, prev_t)){
-            logfile.open("transformation.txt", std::ios::app);
-            logfile_lines = 0;
-            prev_t = t;
-        }   
+        // if(areTransformsDifferent(t, prev_t)){
+        //     logfile.open("transformation.txt", std::ios::app);
+        //     logfile_lines = 0;
+        //     prev_t = t;
+        // }   
 
         std::vector<int> obs_idxs = get_obs_idx(
             curr_beam_world, 
@@ -138,7 +138,7 @@ void rrtHandler::update_occupancy_grid(
     clear_obs_cnt++;
     if(clear_obs_cnt > obs_clear_rate){
         clear_state = true;
-        for(const auto idx : new_obs)   updated_map->data[idx] = -1;
+        for(const auto idx : new_obs)   updated_map->data[idx] = 0;
         new_obs.clear();
         clear_obs_cnt = 0;
     }

@@ -52,6 +52,7 @@ add_executable(executer_node
   src/rrt/rrt.cpp 
   src/rrt/math.cpp 
   src/rrt/visualize.cpp 
+  src/rrt/debug.cpp
   src/cuda/cuda.cu  # Add CUDA file
 )
 

@@ -14,7 +14,23 @@ void rrtHandler::init_map_header(std::string frame_id){
     updated_map->info.origin.orientation.z = 0.0;
     updated_map->info.origin.orientation.w = 1.0;
 
-    updated_map->data.assign(updated_map->info.width * updated_map->info.height, -1);
+    updated_map->data.assign(updated_map->info.width * updated_map->info.height, 0);
+
+
+    updated_map_cuda->header.frame_id = frame_id;
+    // Specify the layout of the map
+    updated_map_cuda->info.resolution = 0.1; // each cell will represent 10cm x 10cm
+    updated_map_cuda->info.width = 759;      // 10m wide
+    updated_map_cuda->info.height = 844;     // 10m tall
+    updated_map_cuda->info.origin.position.x = -27.7;
+    updated_map_cuda->info.origin.position.y = -12.4;
+    updated_map_cuda->info.origin.position.z = 0.0;
+    updated_map_cuda->info.origin.orientation.x = 0.0;
+    updated_map_cuda->info.origin.orientation.y = 0.0;
+    updated_map_cuda->info.origin.orientation.z = 0.0;
+    updated_map_cuda->info.origin.orientation.w = 1.0;
+
+    updated_map_cuda->data.assign(updated_map->info.width * updated_map->info.height, 0);
 }
 
 void rrtHandler::init_marker(std::string parent_frame_id){

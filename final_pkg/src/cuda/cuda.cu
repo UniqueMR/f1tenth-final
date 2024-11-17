@@ -96,7 +96,7 @@ const double updated_map_origin_y = -12.4;
 const double scan_ang_min = -2.35;
 const double scan_ang_increment = 0.00435185;
 
-__global__ void update_occupancy_grid_kernel(float* ranges_arr, uint8_t* updated_map_arr, float t_mat[4][4], double look_ahead_dist, int bubble_offset){
+__global__ void update_occupancy_grid_kernel(float* ranges_arr, uint8_t* updated_map_arr, float* t_mat, double look_ahead_dist, int bubble_offset){
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     
     if(idx < ranges_sz){
@@ -106,25 +106,24 @@ __global__ void update_occupancy_grid_kernel(float* ranges_arr, uint8_t* updated
         if(!isnan(curr_dist) && !isinf(curr_dist)){
             double curr_x = curr_dist * cosf(curr_ang);
             double curr_y = curr_dist * sinf(curr_ang);
+            
+            // printf("Thread %d: curr_dist = %f, curr_ang = %f, curr_x = %f, curr_y = %f, look_ahead_dist = %f\n", idx, curr_dist, curr_ang, curr_x, curr_y, look_ahead_dist);
+            if(fabs(curr_x) < look_ahead_dist && fabs(curr_y) < look_ahead_dist){
 
-            if(curr_x < look_ahead_dist && curr_y < look_ahead_dist){
-                double curr_global_x = t_mat[0][0] * curr_x + t_mat[0][1] * curr_y + t_mat[0][3];
-                double curr_global_y = t_mat[1][0] * curr_x + t_mat[1][1] * curr_y + t_mat[1][3];
+                double curr_global_x = t_mat[0] * curr_x + t_mat[1] * curr_y + t_mat[3];
+                double curr_global_y = t_mat[4] * curr_x + t_mat[5] * curr_y + t_mat[7];
 
                 int base_idx_x = static_cast<int>((curr_global_x - updated_map_origin_x) / updated_map_resolution);
                 int base_idx_y = static_cast<int>((curr_global_y - updated_map_origin_y) / updated_map_resolution);
 
                 for(int i = base_idx_x - bubble_offset; i < base_idx_x + bubble_offset; i++)
-                    for(int j = base_idx_y - bubble_offset; j < base_idx_y + bubble_offset; j++)\
-                        if(i * updated_map_width + j > 0 && i * updated_map_width + j < updated_map_width * updated_map_height)
-                            updated_map_arr[i * updated_map_width + j] = 100;
-                    
-            }
+                    for(int j = base_idx_y - bubble_offset; j < base_idx_y + bubble_offset; j++)
+                        if(j * updated_map_width + i > 0 && j * updated_map_width + i < updated_map_width * updated_map_height)
+                            updated_map_arr[j * updated_map_width + i] = 100;
+            }       
         }
     }
-        
 }
-
 
 extern "C" void update_occupancy_grid_cuda(
     const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg,
@@ -138,18 +137,26 @@ extern "C" void update_occupancy_grid_cuda(
     cudaMalloc(&updated_map_arr, updated_map_height * updated_map_width);
 
     cudaMemcpy(ranges_arr, scan_msg->ranges.data(), ranges_sz * sizeof(float), cudaMemcpyHostToDevice);
+
+
     cudaMemset(updated_map_arr, 0, updated_map_height * updated_map_width * sizeof(uint8_t)); 
     
     dim3 gridDim(ROUND_UP_TO_NEAREST(ranges_sz, 256));
     dim3 blockDim(256);
 
-    float t_mat[4][4];
-    transformStampedToInverseMatrix(transform, t_mat);
+    float t_mat[16];
+    transformStampedToMatrix(transform, t_mat);
+    float* d_t_mat;
 
-    update_occupancy_grid_kernel<<<gridDim, blockDim>>>(ranges_arr, updated_map_arr, t_mat, look_ahead_dist, bubble_offset);
+    cudaMalloc(&d_t_mat, 4 * 4 * sizeof(float));
+    cudaMemcpy(d_t_mat, t_mat, 4 * 4 * sizeof(float), cudaMemcpyHostToDevice);
+
+    update_occupancy_grid_kernel<<<gridDim, blockDim>>>(ranges_arr, updated_map_arr, d_t_mat, look_ahead_dist, bubble_offset);
 
     cudaMemcpy(updated_map->data.data(), updated_map_arr, updated_map_width * updated_map_height * sizeof(uint8_t), cudaMemcpyDeviceToHost);
+
+    cudaFree(ranges_arr);
+    cudaFree(updated_map_arr);
+    cudaFree(d_t_mat);
     
 }
-
-

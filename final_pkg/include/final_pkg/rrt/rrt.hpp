@@ -18,8 +18,9 @@
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 #include "tf2_ros/buffer.h"
 
-void transformStampedToInverseMatrix(geometry_msgs::msg::TransformStamped& transform, float inverse_matrix[4][4]);
-void tb_cuda_local_to_world(double curr_local_x, double curr_local_y, double &curr_global_x, double &curr_global_y, geometry_msgs::msg::TransformStamped& transform);
+void tb_cuda_local_to_world(double curr_local_x, double curr_local_y, double &curr_global_x, double &curr_global_y, const geometry_msgs::msg::TransformStamped &transform);
+void transformStampedToMatrix(const geometry_msgs::msg::TransformStamped &transform, float matrix[16]);
+void compareOccupancyGridData(const std::shared_ptr<nav_msgs::msg::OccupancyGrid> grid1, const std::shared_ptr<nav_msgs::msg::OccupancyGrid> grid2);
 
 typedef struct RRT_Node {
     double x, y; // not sure
@@ -57,6 +58,7 @@ public:
     int clear_obs_cnt = 0;
     bool clear_state = false;
     std::shared_ptr<nav_msgs::msg::OccupancyGrid> updated_map;
+    std::shared_ptr<nav_msgs::msg::OccupancyGrid> updated_map_cuda;
     void update_occupancy_grid(
         const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg,
         double look_ahead_dist, int bubble_offset, int obs_clear_rate

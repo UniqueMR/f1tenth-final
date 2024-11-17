@@ -178,19 +178,23 @@ void Executer::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_
     }
 }
 
+
 void Executer::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg){
-    rrt_handler->update_occupancy_grid(
-        scan_msg,
-        this->get_parameter("rrt_look_ahead_dist").as_double(),
-        this->get_parameter("rrt_bubble_offset").as_int(),
-        this->get_parameter("rrt_obs_clear_rate").as_int()
-    );
-    // update_occupancy_grid_cuda(        
+    // rrt_handler->update_occupancy_grid(
     //     scan_msg,
-    //     rrt_handler->updated_map,
-    //     rrt_handler->t,
     //     this->get_parameter("rrt_look_ahead_dist").as_double(),
-    //     this->get_parameter("rrt_bubble_offset").as_int());
+    //     this->get_parameter("rrt_bubble_offset").as_int(),
+    //     this->get_parameter("rrt_obs_clear_rate").as_int()
+    // );
+    update_occupancy_grid_cuda(        
+        scan_msg,
+        rrt_handler->updated_map,
+        rrt_handler->t,
+        this->get_parameter("rrt_look_ahead_dist").as_double(),
+        this->get_parameter("rrt_bubble_offset").as_int());
+
+    // compareOccupancyGridData(rrt_handler->updated_map, rrt_handler->updated_map_cuda);
+
     rrt_handler->updated_map->header.stamp = this->now();
     occupancy_grid_publisher_->publish(*(rrt_handler->updated_map));
 }
@@ -213,13 +217,13 @@ void Executer::pure_pursuit(const nav_msgs::msg::Odometry::ConstSharedPtr pose_m
 
     drive_msg.drive.steering_angle = (steeringAngle < -0.349) ? -0.349 : ((steeringAngle > 0.349) ? 0.349 : steeringAngle);
 
-    // if(is_brake)    drive_msg.drive.speed = this->get_parameter("brake_speed").as_double();
+    if(is_brake)    drive_msg.drive.speed = this->get_parameter("brake_speed").as_double();
 
-    // else    drive_msg.drive.speed = (drive_msg.drive.steering_angle < 0.1 && drive_msg.drive.steering_angle > -0.1) ? this->get_parameter("pp_high_speed").as_double()\
-    //  : ((drive_msg.drive.steering_angle > 0.2 || drive_msg.drive.steering_angle < -0.2) ? this->get_parameter("pp_low_speed").as_double() :\
-    //   this->get_parameter("pp_medium_speed").as_double());
+    else    drive_msg.drive.speed = (drive_msg.drive.steering_angle < 0.1 && drive_msg.drive.steering_angle > -0.1) ? this->get_parameter("pp_high_speed").as_double()\
+     : ((drive_msg.drive.steering_angle > 0.2 || drive_msg.drive.steering_angle < -0.2) ? this->get_parameter("pp_low_speed").as_double() :\
+      this->get_parameter("pp_medium_speed").as_double());
 
-    drive_msg.drive.speed = 0.0;
+    // drive_msg.drive.speed = 0.0;
 
     drive_publisher_->publish(drive_msg);
 }
