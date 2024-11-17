@@ -9,10 +9,12 @@ rrtHandler::rrtHandler(std::string waypoints_path, std::string parent_frame_id){
     init_marker(parent_frame_id);
     new_obs = {};
     new_obs.reserve(2000);
+    logfile.open("transformation.txt", std::ios::app);
+    if(!logfile.is_open())  std::cerr << "failed to open logfile for transformation" << std::endl; 
 }
 
 rrtHandler::~rrtHandler(){
-    
+    logfile.close();
 }
 
 void rrtHandler::init_tree(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
@@ -41,6 +43,35 @@ void rrtHandler::get_transform_stamp_L2W(
     }
 }
 
+constexpr double EPSILON = 1e-6;
+
+bool areTransformsDifferent(const geometry_msgs::msg::TransformStamped &t1,
+                            const geometry_msgs::msg::TransformStamped &t2) {
+    // Compare translations
+    const auto &trans1 = t1.transform.translation;
+    const auto &trans2 = t2.transform.translation;
+
+    if (std::fabs(trans1.x - trans2.x) > EPSILON ||
+        std::fabs(trans1.y - trans2.y) > EPSILON ||
+        std::fabs(trans1.z - trans2.z) > EPSILON) {
+        return true; // Translation is different
+    }
+
+    // Compare rotations (quaternion)
+    const auto &rot1 = t1.transform.rotation;
+    const auto &rot2 = t2.transform.rotation;
+
+    if (std::fabs(rot1.x - rot2.x) > EPSILON ||
+        std::fabs(rot1.y - rot2.y) > EPSILON ||
+        std::fabs(rot1.z - rot2.z) > EPSILON ||
+        std::fabs(rot1.w - rot2.w) > EPSILON) {
+        return true; // Rotation is different
+    }
+
+    // If no differences are found, they are considered the same
+    return false;
+}
+
 void rrtHandler::update_occupancy_grid(
     const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg,
     double look_ahead_dist, int bubble_offset, int obs_clear_rate){
@@ -64,6 +95,28 @@ void rrtHandler::update_occupancy_grid(
         } catch (const tf2::TransformException &ex) {
         std::cout << "beam transformation failed" << std::endl;
         }
+
+        double curr_beam_world_cuda_x, curr_beam_world_cuda_y; 
+        tb_cuda_local_to_world(curr_x, curr_y, curr_beam_world_cuda_x, curr_beam_world_cuda_y, t);
+
+        logfile << curr_beam_local.point.x << ", " << curr_beam_local.point.y << ", " 
+        << curr_beam_world.point.x << ", " << curr_beam_world.point.y << ", " 
+            << curr_beam_world_cuda_x << ", " << curr_beam_world_cuda_y << std::endl; 
+
+        logfile_lines++;
+
+        if(logfile_lines == 100) logfile.close();
+
+        if(t_init){
+            prev_t = t;
+            t_init = false;
+        }
+
+        if(areTransformsDifferent(t, prev_t)){
+            logfile.open("transformation.txt", std::ios::app);
+            logfile_lines = 0;
+            prev_t = t;
+        }   
 
         std::vector<int> obs_idxs = get_obs_idx(
             curr_beam_world, 

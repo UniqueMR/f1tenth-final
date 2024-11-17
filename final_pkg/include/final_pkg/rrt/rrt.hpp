@@ -2,6 +2,12 @@
 #include <memory>
 #include <random>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 #include "utils/csv_loader.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
@@ -11,6 +17,9 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 #include "tf2_ros/buffer.h"
+
+void transformStampedToInverseMatrix(geometry_msgs::msg::TransformStamped& transform, float inverse_matrix[4][4]);
+void tb_cuda_local_to_world(double curr_local_x, double curr_local_y, double &curr_global_x, double &curr_global_y, geometry_msgs::msg::TransformStamped& transform);
 
 typedef struct RRT_Node {
     double x, y; // not sure
@@ -23,6 +32,11 @@ class rrtHandler{
 public:
     rrtHandler(std::string waypoints_path, std::string parent_frame_id);
     virtual ~rrtHandler();
+
+    std::ofstream logfile;
+    int logfile_lines = 0;
+    geometry_msgs::msg::TransformStamped prev_t;
+    bool t_init = true;
 
     // params
     bool ema_enable;
