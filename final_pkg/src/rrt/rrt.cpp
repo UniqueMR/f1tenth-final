@@ -11,10 +11,16 @@ rrtHandler::rrtHandler(std::string waypoints_path, std::string parent_frame_id){
     new_obs.reserve(2000);
     logfile.open("transformation.txt", std::ios::app);
     if(!logfile.is_open())  std::cerr << "failed to open logfile for transformation" << std::endl; 
+    cudaMalloc(&ranges_arr, ranges_sz * sizeof(float));
+    cudaMalloc(&updated_map_arr, updated_map_height * updated_map_width);
+    cudaMalloc(&d_t_mat, 4 * 4 * sizeof(float));
 }
 
 rrtHandler::~rrtHandler(){
     logfile.close();
+    cudaFree(ranges_arr);
+    cudaFree(updated_map_arr);
+    cudaFree(d_t_mat);
 }
 
 void rrtHandler::init_tree(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
@@ -410,6 +416,7 @@ ackermann_msgs::msg::AckermannDriveStamped rrtHandler::follow_path(std::vector<R
     double steering = 2 * kp * y / std::pow(track_dist, 2);
     control.drive.steering_angle = (steering > 0.4) ? 0.4 : ((steering < -0.4) ? -0.4 : steering);
     control.drive.speed = (steering < 0.1 && steering > -0.1) ? high_speed : ((steering > 0.2 || steering < -0.2) ? low_speed : medium_speed);
+    // control.drive.speed = 0.0;
     return control;
 }
 

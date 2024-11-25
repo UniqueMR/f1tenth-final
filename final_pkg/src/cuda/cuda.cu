@@ -1,10 +1,5 @@
 // my_cuda_code.cu
-#include <cuda_runtime.h>
-#include <cstdio>
 #include "rrt/rrt.hpp"
-#include <geometry_msgs/msg/transform_stamped.hpp>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/LinearMath/Matrix3x3.h>
 
 
 #define ROUND_UP_TO_NEAREST(M, N) (((M) + (N)-1) / (N))
@@ -87,14 +82,9 @@ extern "C" bool check_collision_cuda(double pta_x, double pta_y, double ptb_x, d
     return h_collision_flag;
 }
 
-const uint ranges_sz = 1080;
-const uint updated_map_width = 759;
-const uint updated_map_height = 844;
-const double updated_map_resolution = 0.1;
-const double updated_map_origin_x = -27.7;
-const double updated_map_origin_y = -12.4;
-const double scan_ang_min = -2.35;
-const double scan_ang_increment = 0.00435185;
+float* ranges_arr;
+uint8_t* updated_map_arr;
+float* d_t_mat;
 
 __global__ void update_occupancy_grid_kernel(float* ranges_arr, uint8_t* updated_map_arr, float* t_mat, double look_ahead_dist, int bubble_offset){
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -131,10 +121,6 @@ extern "C" void update_occupancy_grid_cuda(
     geometry_msgs::msg::TransformStamped& transform,
     double look_ahead_dist, int bubble_offset
 ){
-    float* ranges_arr;
-    uint8_t* updated_map_arr;
-    cudaMalloc(&ranges_arr, ranges_sz * sizeof(float));
-    cudaMalloc(&updated_map_arr, updated_map_height * updated_map_width);
 
     cudaMemcpy(ranges_arr, scan_msg->ranges.data(), ranges_sz * sizeof(float), cudaMemcpyHostToDevice);
 
@@ -146,17 +132,11 @@ extern "C" void update_occupancy_grid_cuda(
 
     float t_mat[16];
     transformStampedToMatrix(transform, t_mat);
-    float* d_t_mat;
 
-    cudaMalloc(&d_t_mat, 4 * 4 * sizeof(float));
     cudaMemcpy(d_t_mat, t_mat, 4 * 4 * sizeof(float), cudaMemcpyHostToDevice);
 
     update_occupancy_grid_kernel<<<gridDim, blockDim>>>(ranges_arr, updated_map_arr, d_t_mat, look_ahead_dist, bubble_offset);
 
     cudaMemcpy(updated_map->data.data(), updated_map_arr, updated_map_width * updated_map_height * sizeof(uint8_t), cudaMemcpyDeviceToHost);
-
-    cudaFree(ranges_arr);
-    cudaFree(updated_map_arr);
-    cudaFree(d_t_mat);
     
 }

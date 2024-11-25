@@ -8,6 +8,8 @@
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
+#include <cuda_runtime.h>
+#include <cstdio>
 #include "utils/csv_loader.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
@@ -28,6 +30,19 @@ typedef struct RRT_Node {
     int parent; // index of parent node in the tree vector
     bool is_root = false;
 } RRT_Node;
+
+extern float* ranges_arr;
+extern uint8_t* updated_map_arr;
+extern float* d_t_mat;
+
+const uint ranges_sz = 1080;
+const uint updated_map_width = 759;
+const uint updated_map_height = 844;
+const double updated_map_resolution = 0.1;
+const double updated_map_origin_x = -27.7;
+const double updated_map_origin_y = -12.4;
+const double scan_ang_min = -2.35;
+const double scan_ang_increment = 0.00435185;
 
 class rrtHandler{
 public:

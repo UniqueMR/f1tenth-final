@@ -11,6 +11,8 @@ enable_language(CUDA)
 
 # Check for the availability of CUDA
 find_package(CUDA REQUIRED)
+include_directories(${CUDA_INCLUDE_DIRS})
+
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -59,6 +61,8 @@ add_executable(executer_node
 ament_target_dependencies(executer_node 
   rclcpp geometry_msgs ackermann_msgs nav_msgs sensor_msgs std_msgs visualization_msgs tf2_ros tf2_geometry_msgs
 )
+target_include_directories(executer_node PRIVATE ${CUDA_INCLUDE_DIRS})
+
 
 # Link CUDA libraries
 target_link_libraries(executer_node 
