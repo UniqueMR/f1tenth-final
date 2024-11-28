@@ -280,13 +280,22 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
 
             // if(check_collision_cuda(rrt_handler->tree[new_node.parent].x, rrt_handler->tree[new_node.parent].y, new_node.x, new_node.y, this->get_parameter("rrt_check_pts_num").as_int(), origin_x, origin_y, resolution, width, map_data_host))
             //     continue;
-            if(rrt_handler->check_collision(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int()))
+
+            // std::cout << "check collision cpu: " 
+            //     << rrt_handler->check_collision(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int())
+            //     << "check collision cuda: " 
+            //     << rrt_handler->check_collision_cuda(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int()) << std::endl;
+ 
+            // if(rrt_handler->check_collision_cuda(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int()) != rrt_handler->check_collision(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int()))
+            //     std::cout << "cuda checkcollision failed" << std::endl;
+
+            if(rrt_handler->check_collision_cuda(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int()))
                 continue;
             if(best_neighbor_idx != -1)
                 rrt_handler->rearrange_tree(best_neighbor_idx, neighbor_indices, neighbor_collided, new_node);
         }
         else{
-            if(rrt_handler->check_collision(
+            if(rrt_handler->check_collision_cuda(
                 nearest_node_id, new_node,
                 this->get_parameter("rrt_check_pts_num").as_int())
             )   continue;

@@ -140,3 +140,39 @@ extern "C" void update_occupancy_grid_cuda(
     cudaMemcpy(updated_map->data.data(), updated_map_arr, updated_map_width * updated_map_height * sizeof(uint8_t), cudaMemcpyDeviceToHost);
     
 }
+
+is_collide_functor::is_collide_functor(const uint8_t* arr, double neighbor_x, double neighbor_y, double x_incre, double y_incre)
+    : updated_map_arr(arr), neighbor_x(neighbor_x), neighbor_y(neighbor_y), x_incre(x_incre), y_incre(y_incre){}
+
+__device__
+bool is_collide_functor::operator()(int i) const {
+    double sampled_pt_x = neighbor_x + i * x_incre;
+    double sampled_pt_y = neighbor_y + i * y_incre;
+    int idx_x = static_cast<int>((sampled_pt_x - updated_map_origin_x) / updated_map_resolution);
+    int idx_y = static_cast<int>((sampled_pt_y - updated_map_origin_y) / updated_map_resolution);
+    int idx = idx_y * updated_map_width + idx_x;
+
+    return updated_map_arr[idx] == 100;
+}
+
+bool rrtHandler::check_collision_cuda(int neighbor_idx, RRT_Node new_node, int check_pts_num){
+    // create a new temp node along the line between nearest node and new node 
+    double neighbor_x = tree[neighbor_idx].x;
+    double neighbor_y = tree[neighbor_idx].y;
+    double x_incre = (new_node.x - neighbor_x) / check_pts_num;
+    double y_incre = (new_node.y - neighbor_y) / check_pts_num;
+
+    thrust::device_vector<int> indices(check_pts_num);
+    thrust::sequence(indices.begin(), indices.end());
+
+    bool collision = thrust::transform_reduce(
+        indices.begin(),                        // Input begin
+        indices.end(),                          // Input end
+        is_collide_functor(updated_map_arr,     // Unary transform function
+                           neighbor_x, neighbor_y, x_incre, y_incre),
+        false,                                  // Initial value (no collision initially)
+        thrust::logical_or<bool>()             // Binary reduction operator
+    );
+
+    return collision;
+}

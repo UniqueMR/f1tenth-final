@@ -9,7 +9,14 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <cuda_runtime.h>
+#include <thrust/device_vector.h>
+#include <thrust/host_vector.h>
+#include <thrust/transform.h>
+#include <thrust/functional.h>
+#include <thrust/sequence.h>
+#include <thrust/transform_reduce.h>
 #include <cstdio>
+#include <cstdint>
 #include "utils/csv_loader.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
@@ -43,6 +50,17 @@ const double updated_map_origin_x = -27.7;
 const double updated_map_origin_y = -12.4;
 const double scan_ang_min = -2.35;
 const double scan_ang_increment = 0.00435185;
+
+struct is_collide_functor {
+    const uint8_t* updated_map_arr;
+    double neighbor_x, neighbor_y;
+    double x_incre, y_incre;
+
+    is_collide_functor(const uint8_t* arr, double neighbor_x, double neighbor_y, double x_incre, double y_incre);
+
+    __device__
+    bool operator()(int i) const;
+};
 
 class rrtHandler{
 public:
@@ -102,6 +120,7 @@ public:
     double calcDistance(std::vector<double> sampled_pt, double node_x, double node_y);
     RRT_Node steer(int nearest_node_id, std::vector<double> sampled_node_pt, double max_expansion_dist);
     bool check_collision(int neighbor_idx, RRT_Node new_node, int check_pts_num);
+    bool check_collision_cuda(int neighbor_idx, RRT_Node new_node, int check_pts_num);
     double cost(RRT_Node node);
     double line_cost(RRT_Node &n1, RRT_Node &n2);
     std::vector<int> near(RRT_Node node, int search_radius);
