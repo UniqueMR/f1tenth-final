@@ -1,6 +1,6 @@
 #include "rrt/rrt.hpp"
 
-rrtHandler::rrtHandler(std::string waypoints_path, std::string parent_frame_id){
+rrtHandler::rrtHandler(std::string waypoints_path, std::string parent_frame_id, int _check_pts_num){
     updated_map = std::make_shared<nav_msgs::msg::OccupancyGrid>();
     updated_map_cuda = std::make_shared<nav_msgs::msg::OccupancyGrid>();
     dataloader = std::make_unique<wayPointLoader>(waypoints_path.c_str());
@@ -14,6 +14,8 @@ rrtHandler::rrtHandler(std::string waypoints_path, std::string parent_frame_id){
     cudaMalloc(&ranges_arr, ranges_sz * sizeof(float));
     cudaMalloc(&updated_map_arr, updated_map_height * updated_map_width);
     cudaMalloc(&d_t_mat, 4 * 4 * sizeof(float));
+    this->check_pts_num = _check_pts_num;
+    this->init_thrust();
 }
 
 rrtHandler::~rrtHandler(){
@@ -232,7 +234,7 @@ RRT_Node rrtHandler::steer(int nearest_node_id, std::vector<double> sampled_node
     return new_node;
 }
 
-bool rrtHandler::check_collision(int neighbor_idx, RRT_Node new_node, int check_pts_num){
+bool rrtHandler::check_collision(int neighbor_idx, RRT_Node new_node){
     
     // create a new temp node along the line between nearest node and new node 
     double x_incre = (new_node.x - tree[neighbor_idx].x) / check_pts_num;
@@ -268,10 +270,10 @@ std::vector<int> rrtHandler::near(RRT_Node node, int search_radius) {
     return neighborhood;
 }
 
-int rrtHandler::link_best_neighbor(RRT_Node &new_node, std::vector<int> neighbor_indices, std::vector<bool> &neighbor_collided, int check_pts_num){
+int rrtHandler::link_best_neighbor(RRT_Node &new_node, std::vector<int> neighbor_indices, std::vector<bool> &neighbor_collided){
     int best_neighbor_idx = -1;
     for(const int neighbor_idx : neighbor_indices){
-        if(check_collision(neighbor_idx, new_node, check_pts_num)){
+        if(check_collision(neighbor_idx, new_node)){
             neighbor_collided.push_back(true);
             continue;
         }

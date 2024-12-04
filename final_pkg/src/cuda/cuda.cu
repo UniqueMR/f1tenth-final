@@ -155,19 +155,16 @@ bool is_collide_functor::operator()(int i) const {
     return updated_map_arr[idx] == 100;
 }
 
-bool rrtHandler::check_collision_cuda(int neighbor_idx, RRT_Node new_node, int check_pts_num){
+bool rrtHandler::check_collision_cuda(int neighbor_idx, RRT_Node new_node){
     // create a new temp node along the line between nearest node and new node 
     double neighbor_x = tree[neighbor_idx].x;
     double neighbor_y = tree[neighbor_idx].y;
-    double x_incre = (new_node.x - neighbor_x) / check_pts_num;
-    double y_incre = (new_node.y - neighbor_y) / check_pts_num;
-
-    thrust::device_vector<int> indices(check_pts_num);
-    thrust::sequence(indices.begin(), indices.end());
+    double x_incre = (new_node.x - neighbor_x) / this->check_pts_num;
+    double y_incre = (new_node.y - neighbor_y) / this->check_pts_num;
 
     bool collision = thrust::transform_reduce(
-        indices.begin(),                        // Input begin
-        indices.end(),                          // Input end
+        this->indices.begin(),                        // Input begin
+        this->indices.end(),                          // Input end
         is_collide_functor(updated_map_arr,     // Unary transform function
                            neighbor_x, neighbor_y, x_incre, y_incre),
         false,                                  // Initial value (no collision initially)
@@ -175,4 +172,9 @@ bool rrtHandler::check_collision_cuda(int neighbor_idx, RRT_Node new_node, int c
     );
 
     return collision;
+}
+
+void rrtHandler::init_thrust(){
+    this->indices.resize(this->check_pts_num);
+    thrust::sequence(this->indices.begin(), this->indices.end());
 }

@@ -64,7 +64,7 @@ struct is_collide_functor {
 
 class rrtHandler{
 public:
-    rrtHandler(std::string waypoints_path, std::string parent_frame_id);
+    rrtHandler(std::string waypoints_path, std::string parent_frame_id, int _check_pts_num);
     virtual ~rrtHandler();
 
     std::ofstream logfile;
@@ -119,12 +119,12 @@ public:
     int nearest(std::vector<double> sampled_node_pt);
     double calcDistance(std::vector<double> sampled_pt, double node_x, double node_y);
     RRT_Node steer(int nearest_node_id, std::vector<double> sampled_node_pt, double max_expansion_dist);
-    bool check_collision(int neighbor_idx, RRT_Node new_node, int check_pts_num);
-    bool check_collision_cuda(int neighbor_idx, RRT_Node new_node, int check_pts_num);
+    bool check_collision(int neighbor_idx, RRT_Node new_node);
+    bool check_collision_cuda(int neighbor_idx, RRT_Node new_node);
     double cost(RRT_Node node);
     double line_cost(RRT_Node &n1, RRT_Node &n2);
     std::vector<int> near(RRT_Node node, int search_radius);
-    int link_best_neighbor(RRT_Node &new_node, std::vector<int> neighbor_indices, std::vector<bool> &neighbor_collided, int check_pts_num);
+    int link_best_neighbor(RRT_Node &new_node, std::vector<int> neighbor_indices, std::vector<bool> &neighbor_collided);
     void rearrange_tree(int best_neighbor_idx, std::vector<int> neighbor_indices, std::vector<bool> neighbor_collided, RRT_Node new_node);
     std::vector<double> get_target_pt(nav_msgs::msg::Odometry::ConstSharedPtr pose_msg, geometry_msgs::msg::TransformStamped t, double look_ahead_dist);
 
@@ -144,4 +144,10 @@ private:
     std::mt19937 gen;
     std::uniform_real_distribution<> x_dist;
     std::uniform_real_distribution<> y_dist;
+    int check_pts_num;
+
+    // thrust
+    thrust::device_vector<int> indices;
+
+    void init_thrust();
 };
