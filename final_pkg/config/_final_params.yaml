@@ -19,7 +19,7 @@
     rrt_track_dist: 3.0 #1.5
     rrt_bubble_offset: 2
     rrt_iter: 2000
-    rrt_check_pts_num: 10
+    rrt_check_pts_num: 1000
     rrt_max_expansion_dist: 1.0
     rrt_obs_clear_rate: 5
     rrt_kp: 0.3

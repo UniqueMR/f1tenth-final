@@ -97,7 +97,7 @@ Executer::Executer()
     blocking_handler = std:: make_unique<blockingHandler>();
 
     //initialize the current state
-    curr_state = execState::NORMAL;
+    curr_state = execState::OVERTAKE;
 
     return;
 }
@@ -271,11 +271,33 @@ void Executer::rrt(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg){
             //     << rrt_handler->check_collision(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int())
             //     << "check collision cuda: " 
             //     << rrt_handler->check_collision_cuda(new_node.parent, new_node, this->get_parameter("rrt_check_pts_num").as_int()) << std::endl;
- 
-            if(rrt_handler->check_collision_cuda(new_node.parent, new_node) != rrt_handler->check_collision(new_node.parent, new_node))
-                std::cout << "cuda checkcollision failed" << std::endl;
+            
+            /**
+            auto start = std::chrono::high_resolution_clock::now();
+            auto result = rrt_handler->check_collision_cuda(new_node.parent, new_node);
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
-            if(rrt_handler->check_collision_cuda(new_node.parent, new_node))
+            std::ofstream file("collision_time_rtt_gpu_10000.txt", std::ios::app);
+            if (file.is_open()) {
+                file << "time: " << duration.count() << " nanoseconds" << std::endl;
+                file.close();
+            } 
+            */
+             
+            auto start = std::chrono::high_resolution_clock::now();
+            auto result_cpu = rrt_handler->check_collision(new_node.parent, new_node);
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+            std::ofstream file2("collision_time_rtt_cpu_10000.txt", std::ios::app);
+            if (file2.is_open()) {
+                file2 << "time: " << duration.count() << " nanoseconds" << std::endl;
+                file2.close();
+            } 
+            
+
+            if(result_cpu)
                 continue;
             if(best_neighbor_idx != -1)
                 rrt_handler->rearrange_tree(best_neighbor_idx, neighbor_indices, neighbor_collided, new_node);

@@ -1,0 +1,13 @@
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/uninstall.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/final_pkg_uninstall.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/executer_node.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/ament_cmake_python_copy_final_pkg.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/ament_cmake_python_copy_final_pkg_setup.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/ament_cmake_python_build_final_pkg_egg.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/test.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/edit_cache.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/rebuild_cache.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/list_install_components.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/install.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/install/local.dir
+/home/rui/sim_ws/src/final_pkg/build/CMakeFiles/install/strip.dir

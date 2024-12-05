@@ -54,26 +54,74 @@ extern "C" bool check_collision_cuda(double pta_x, double pta_y, double ptb_x, d
     int *d_map_data;
     bool *d_collision_flag, h_collision_flag = false;
 
+
+    auto start = std::chrono::high_resolution_clock::now();
     // Allocate memory on the device
     cudaMalloc(&d_map_data, width * width * sizeof(int));
     cudaMalloc(&d_collision_flag, sizeof(bool));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+    std::ofstream file("cc_cuda_malloc.txt", std::ios::app); // Use std::ios::app to append to the file
+    if (file.is_open()) {
+        file << "time: " << duration.count() << " nanoseconds" << std::endl;
+        file.close();
+    } else {
+        std::cerr << "Unable to open file for writing!" << std::endl;
+    }
 
     // Copy data to device
+    start = std::chrono::high_resolution_clock::now();
     cudaMemcpy(d_map_data, map_data, width * width * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_collision_flag, &h_collision_flag, sizeof(bool), cudaMemcpyHostToDevice);
+    //auto result = rrt_handler->check_collision(new_node.parent, new_node);
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+    std::ofstream copy_file("cc_cuda_copy_to_gpu.txt", std::ios::app); // Use std::ios::app to append to the file
+    if (copy_file.is_open()) {
+        copy_file << "time: " << duration.count() << " nanoseconds" << std::endl;
+        copy_file.close();
+    } else {
+        std::cerr << "Unable to open file for writing!" << std::endl;
+    }
+
 
     // Define grid and block size
     int blockSize = 256;
     int numBlocks = (check_pts_num + blockSize - 1) / blockSize;
 
     // Launch the kernel
+    start = std::chrono::high_resolution_clock::now();
     check_collision_kernel<<<numBlocks, blockSize>>>(pta_x, pta_y, ptb_x, ptb_y, 
                                                      check_pts_num, resolution, 
                                                      origin_x, origin_y, width, 
                                                      d_map_data, d_collision_flag);
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
+    std::ofstream kernel_file("check_collision_kernel.txt", std::ios::app); // Use std::ios::app to append to the file
+    if (kernel_file.is_open()) {
+        kernel_file << "time: " << duration.count() << " nanoseconds" << std::endl;
+        kernel_file.close();
+    } else {
+        std::cerr << "Unable to open file for writing!" << std::endl;
+    }
+
+    start = std::chrono::high_resolution_clock::now();
     // Copy the result back to host
     cudaMemcpy(&h_collision_flag, d_collision_flag, sizeof(bool), cudaMemcpyDeviceToHost);
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+    std::cout << "CPU check collision time: " << duration.count() << " nanoseconds" << std::endl;
+
+    std::ofstream copy_file2("cc_cuda_copy_to_cpu.txt", std::ios::app); // Use std::ios::app to append to the file
+    if (copy_file2.is_open()) {
+        copy_file2 << "time: " << duration.count() << " nanoseconds" << std::endl;
+        copy_file2.close();
+    } else {
+        std::cerr << "Unable to open file for writing!" << std::endl;
+    }
 
     // Free device memory
     cudaFree(d_map_data);
@@ -121,9 +169,16 @@ extern "C" void update_occupancy_grid_cuda(
     geometry_msgs::msg::TransformStamped& transform,
     double look_ahead_dist, int bubble_offset
 ){
-
+    auto start = std::chrono::high_resolution_clock::now();
     cudaMemcpy(ranges_arr, scan_msg->ranges.data(), ranges_sz * sizeof(float), cudaMemcpyHostToDevice);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
+    std::ofstream file("update_grid_copy1_to_gpu.txt", std::ios::app); // Use std::ios::app to append to the file
+    if (file.is_open()) {
+        file << "time: " << duration.count() << " nanoseconds" << std::endl;
+        file.close();
+    } 
 
     cudaMemset(updated_map_arr, 0, updated_map_height * updated_map_width * sizeof(uint8_t)); 
     
@@ -132,13 +187,39 @@ extern "C" void update_occupancy_grid_cuda(
 
     float t_mat[16];
     transformStampedToMatrix(transform, t_mat);
-
-    cudaMemcpy(d_t_mat, t_mat, 4 * 4 * sizeof(float), cudaMemcpyHostToDevice);
-
-    update_occupancy_grid_kernel<<<gridDim, blockDim>>>(ranges_arr, updated_map_arr, d_t_mat, look_ahead_dist, bubble_offset);
-
-    cudaMemcpy(updated_map->data.data(), updated_map_arr, updated_map_width * updated_map_height * sizeof(uint8_t), cudaMemcpyDeviceToHost);
     
+    start = std::chrono::high_resolution_clock::now();
+    cudaMemcpy(d_t_mat, t_mat, 4 * 4 * sizeof(float), cudaMemcpyHostToDevice);
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+    std::ofstream copy2_file("update_grid_copy2_to_gpu.txt", std::ios::app); // Use std::ios::app to append to the file
+    if (copy2_file.is_open()) {
+        copy2_file << "time: " << duration.count() << " nanoseconds" << std::endl;
+        copy2_file.close();
+    }
+
+    start = std::chrono::high_resolution_clock::now();
+    update_occupancy_grid_kernel<<<gridDim, blockDim>>>(ranges_arr, updated_map_arr, d_t_mat, look_ahead_dist, bubble_offset);
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+    std::ofstream kernel_file("update_grid_kernel.txt", std::ios::app); // Use std::ios::app to append to the file
+    if (kernel_file.is_open()) {
+        kernel_file << "time: " << duration.count() << " nanoseconds" << std::endl;
+        kernel_file.close();
+    }
+
+    start = std::chrono::high_resolution_clock::now();
+    cudaMemcpy(updated_map->data.data(), updated_map_arr, updated_map_width * updated_map_height * sizeof(uint8_t), cudaMemcpyDeviceToHost);
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+    std::ofstream copy3_file("update_grid_copy3_to_cpu.txt", std::ios::app); // Use std::ios::app to append to the file
+    if (copy3_file.is_open()) {
+        copy3_file << "time: " << duration.count() << " nanoseconds" << std::endl;
+        copy3_file.close();
+    }
 }
 
 is_collide_functor::is_collide_functor(const uint8_t* arr, double neighbor_x, double neighbor_y, double x_incre, double y_incre)
