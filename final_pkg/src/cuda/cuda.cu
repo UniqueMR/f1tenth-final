@@ -174,14 +174,23 @@ extern "C" void update_occupancy_grid_cuda(
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
-    std::ofstream file("update_grid_copy1_to_gpu.txt", std::ios::app); // Use std::ios::app to append to the file
+    std::ofstream file("update_grid_copy_beams_to_gpu.txt", std::ios::app); // Use std::ios::app to append to the file
     if (file.is_open()) {
         file << "time: " << duration.count() << " nanoseconds" << std::endl;
         file.close();
     } 
 
+    auto start = std::chrono::high_resolution_clock::now();
     cudaMemset(updated_map_arr, 0, updated_map_height * updated_map_width * sizeof(uint8_t)); 
-    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+
+    std::ofstream file("update_grid_init_cells.txt", std::ios::app); // Use std::ios::app to append to the file
+    if (file.is_open()) {
+        file << "time: " << duration.count() << " nanoseconds" << std::endl;
+        file.close();
+    }
+
     dim3 gridDim(ROUND_UP_TO_NEAREST(ranges_sz, 256));
     dim3 blockDim(256);
 
@@ -193,7 +202,7 @@ extern "C" void update_occupancy_grid_cuda(
     end = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
-    std::ofstream copy2_file("update_grid_copy2_to_gpu.txt", std::ios::app); // Use std::ios::app to append to the file
+    std::ofstream copy2_file("update_grid_copy_trans_mat_to_gpu.txt", std::ios::app); // Use std::ios::app to append to the file
     if (copy2_file.is_open()) {
         copy2_file << "time: " << duration.count() << " nanoseconds" << std::endl;
         copy2_file.close();
@@ -215,7 +224,7 @@ extern "C" void update_occupancy_grid_cuda(
     end = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
-    std::ofstream copy3_file("update_grid_copy3_to_cpu.txt", std::ios::app); // Use std::ios::app to append to the file
+    std::ofstream copy3_file("update_grid_copy_back_cells.txt", std::ios::app); // Use std::ios::app to append to the file
     if (copy3_file.is_open()) {
         copy3_file << "time: " << duration.count() << " nanoseconds" << std::endl;
         copy3_file.close();
